@@ -1,4 +1,3 @@
-// src/index.ts
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -15,13 +14,15 @@ import { jobQueue } from "./queues/jobQueue.js";
 const app = express();
 
 app.use(helmet());
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(",") ?? [
-    "http://localhost:3000",
-    "http://localhost:3001",
-  ],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(",") ?? [
+      "http://localhost:3000",
+      "http://localhost:3001",
+    ],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // Routes
@@ -67,9 +68,9 @@ server.listen(PORT, () => {
 // Without this, jobs being actively matched are orphaned and re-enqueued as failures.
 async function shutdown(signal: string) {
   console.log(`[Server] ${signal} received — shutting down gracefully…`);
-  server.close();                  // stop accepting new HTTP/WS connections
-  await matchmakerWorker.close();  // wait for in-flight matchmaker jobs to complete
-  await jobQueue.close();          // close queue Redis connection
+  server.close(); // stop accepting new HTTP/WS connections
+  await matchmakerWorker.close(); // wait for in-flight matchmaker jobs to complete
+  await jobQueue.close(); // close queue Redis connection
   console.log("[Server] Clean exit");
   process.exit(0);
 }
@@ -77,9 +78,15 @@ async function shutdown(signal: string) {
 const forceExitAfterMs = 10_000;
 process.on("SIGTERM", () => {
   shutdown("SIGTERM");
-  setTimeout(() => { console.error("[Server] Force exit after timeout"); process.exit(1); }, forceExitAfterMs).unref();
+  setTimeout(() => {
+    console.error("[Server] Force exit after timeout");
+    process.exit(1);
+  }, forceExitAfterMs).unref();
 });
 process.on("SIGINT", () => {
   shutdown("SIGINT");
-  setTimeout(() => { console.error("[Server] Force exit after timeout"); process.exit(1); }, forceExitAfterMs).unref();
+  setTimeout(() => {
+    console.error("[Server] Force exit after timeout");
+    process.exit(1);
+  }, forceExitAfterMs).unref();
 });
