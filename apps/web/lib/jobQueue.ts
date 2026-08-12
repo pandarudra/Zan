@@ -32,5 +32,4 @@ function getQueue(): Queue {
 // adding the same jobId twice returns the existing BullMQ job (no double-queue).
 export async function enqueueJob(jobId: string): Promise<void> {
   await getQueue().add("match", { jobId }, { jobId });
-  console.log(`[jobQueue] Enqueued job ${jobId}`);
 }

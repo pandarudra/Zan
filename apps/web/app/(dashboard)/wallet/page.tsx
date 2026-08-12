@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, getSession } from "next-auth/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import "@solana/wallet-adapter-react-ui/styles.css";
@@ -38,9 +38,11 @@ function WalletVerificationContent() {
     setError("");
 
     try {
-      // const apiBase = token ? "http://localhost:3001/api/auth" : "/api/auth";
+      const currentSession = await getSession();
+      const accessToken = token || (currentSession as any)?.accessToken;
+
       const headers: any = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
+      if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
 
       // 1. Get challenge
       const chalRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/wallet/challenge`, { headers });
@@ -86,9 +88,9 @@ function WalletVerificationContent() {
   if (status === "loading" || (status === "unauthenticated" && !token)) return null;
 
   return (
-    <div className="min-h-screen bg-brand-dark flex items-center justify-center relative overflow-hidden px-6 pt-20">
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-brand-cyan/10 blur-[150px] rounded-full pointer-events-none" />
+    <div className="min-h-full flex items-center justify-center relative px-6 py-10">
+
+
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -96,24 +98,24 @@ function WalletVerificationContent() {
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-lg relative z-10"
       >
-        <div className="rounded-3xl border border-white/10 bg-brand-gray/50 backdrop-blur-2xl p-10 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-cyan to-transparent opacity-50" />
+        <div className="rounded-none border border-hairline bg-canvas p-10 relative overflow-hidden">
+
 
           <div className="text-center mb-10 flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full bg-brand-cyan/20 flex items-center justify-center mb-4">
-              <ShieldCheck className="w-8 h-8 text-brand-cyan" />
+            <div className="w-16 h-16 rounded-full bg-surface-cool flex items-center justify-center mb-4">
+              <ShieldCheck className="w-8 h-8 text-ink" />
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
+            <h1 className="text-3xl font-bold tracking-tight text-ink mb-2">
               Verify Wallet
             </h1>
-            <p className="text-white/50 font-light">
+            <p className="text-graphite font-light">
               Prove ownership of your Solana wallet to link it to your Zan account.
             </p>
           </div>
 
           <div className="flex flex-col gap-6">
             {error && (
-              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3">
+              <div className="p-4 rounded-none bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 <p>{error}</p>
               </div>
@@ -123,7 +125,7 @@ function WalletVerificationContent() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-6 rounded-2xl bg-green-500/10 border border-green-500/20 text-center"
+                className="p-6 rounded-none bg-green-500/10 border border-green-500/20 text-center"
               >
                 <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle2 className="w-6 h-6 text-green-400" />
@@ -135,8 +137,8 @@ function WalletVerificationContent() {
               </motion.div>
             ) : (
               <>
-                <div className="flex flex-col items-center gap-4 bg-black/30 p-6 rounded-2xl border border-white/5">
-                  <p className="text-sm text-white/60 text-center mb-2">
+                <div className="flex flex-col items-center gap-4 bg-canvas p-6 rounded-none border border-hairline">
+                  <p className="text-sm text-graphite text-center mb-2">
                     Step 1: Connect your Solana wallet
                   </p>
                   <WalletMultiButton style={{ backgroundColor: "#00ffd1", color: "#09090e", borderRadius: "9999px", fontWeight: "bold" }} />
@@ -151,7 +153,7 @@ function WalletVerificationContent() {
                     <button
                       onClick={handleVerify}
                       disabled={loading}
-                      className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-all disabled:opacity-70"
+                      className="w-full flex items-center justify-center gap-2 py-4 rounded-none bg-white text-black font-bold hover:bg-surface-cool transition-all disabled:opacity-70"
                     >
                       {loading ? (
                         <>
@@ -162,7 +164,7 @@ function WalletVerificationContent() {
                         "Step 2: Sign Message to Verify"
                       )}
                     </button>
-                    <p className="text-xs text-center text-white/40">
+                    <p className="text-xs text-center text-graphite">
                       Signing this message is free and will not cost any SOL.
                     </p>
                   </motion.div>
@@ -178,7 +180,7 @@ function WalletVerificationContent() {
 
 export default function WalletVerificationPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-brand-dark flex items-center justify-center text-white/50">Loading verification...</div>}>
+    <Suspense fallback={<div className="min-h-full flex items-center justify-center text-graphite">Loading verification...</div>}>
       <WalletVerificationContent />
     </Suspense>
   );

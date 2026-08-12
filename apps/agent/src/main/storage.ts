@@ -1,6 +1,9 @@
 import { BlobServiceClient } from "@azure/storage-blob";
 import * as fs from "fs";
 import * as path from "path";
+import pino from "pino";
+
+const logger = pino();
 
 export function loadDotEnv(): void {
   const candidates = [
@@ -56,7 +59,7 @@ async function ensureContainer(): Promise<void> {
     blobServiceClient.getContainerClient(OUTPUT_CONTAINER);
   const result = await containerClient.createIfNotExists();
   if (result.succeeded) {
-    console.log(`[Storage] Created Azure container: ${OUTPUT_CONTAINER}`);
+    logger.info(`[Storage] Created Azure container: ${OUTPUT_CONTAINER}`);
   }
 }
 

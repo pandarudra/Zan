@@ -1,4 +1,5 @@
 import { Redis } from "ioredis";
+import { logger } from "./logger.js";
 
 /**
  * Factory - call once per Queue/Worker instance.
@@ -16,9 +17,9 @@ export function makeRedisConnection(): Redis {
     enableReadyCheck: false,
   });
 
-  conn.on("connect", () => console.log("[Redis] Connected"));
+  conn.on("connect", () => logger.info("[Redis] Connected"));
   conn.on("error", (err: Error) =>
-    console.error("[Redis] Error:", err.message),
+    logger.error({ err: err.message }, "[Redis] Error"),
   );
 
   return conn;

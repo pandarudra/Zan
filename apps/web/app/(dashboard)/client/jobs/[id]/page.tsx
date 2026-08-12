@@ -16,6 +16,7 @@ import {
   Clock,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { PageContainer } from "@/components/shared/page-container";
 
 type JobStatus =
   | "CREATED"
@@ -82,9 +83,9 @@ const STATUS_CONFIG: Record<
 > = {
   CREATED: {
     label: "Created",
-    color: "text-white/50",
-    bg: "bg-white/5",
-    border: "border-white/10",
+    color: "text-graphite",
+    bg: "bg-surface-cool",
+    border: "border-hairline",
   },
   FUNDED: {
     label: "In Queue",
@@ -106,9 +107,9 @@ const STATUS_CONFIG: Record<
   },
   RUNNING: {
     label: "Running",
-    color: "text-brand-cyan",
-    bg: "bg-brand-cyan/10",
-    border: "border-brand-cyan/20",
+    color: "text-ink",
+    bg: "bg-surface-cool",
+    border: "border-ink",
   },
   COMPLETED: {
     label: "Completed",
@@ -180,9 +181,9 @@ function StatCard({
   value: string;
 }): React.ReactElement {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-      <p className="text-xs text-white/30 mb-1">{label}</p>
-      <p className="text-white font-semibold text-sm truncate">{value}</p>
+    <div className="rounded-none border border-hairline bg-canvas p-4">
+      <p className="text-xs text-stone mb-1">{label}</p>
+      <p className="text-ink font-semibold text-sm truncate">{value}</p>
     </div>
   );
 }
@@ -235,10 +236,10 @@ function LogViewer({ jobId }: { jobId: string }): React.ReactElement {
   }, [jobId]);
 
   if (loading)
-    return <div className="text-sm text-white/40">Loading logs...</div>;
+    return <div className="text-sm text-graphite">Loading logs...</div>;
 
   return (
-    <pre className="max-h-96 overflow-auto rounded-xl bg-black/50 p-4 text-xs text-green-400 font-mono whitespace-pre-wrap">
+    <pre className="max-h-96 overflow-auto rounded-none bg-canvas p-4 text-xs text-green-400 font-mono whitespace-pre-wrap">
       {logs || "No logs captured"}
     </pre>
   );
@@ -258,7 +259,6 @@ export default function JobDetailPage(): React.ReactElement {
   const fetchJob = useCallback(async () => {
     try {
       const data = await api.get(`/api/jobs/${jobId}`);
-      console.log(data.job);
       setJob(data.job);
     } catch (err: any) {
       if (err.message.includes("404") || err.message.includes("403")) {
@@ -319,24 +319,24 @@ export default function JobDetailPage(): React.ReactElement {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-dark flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-cyan" />
-      </div>
+      <PageContainer className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-ink" />
+      </PageContainer>
     );
   }
 
   if (fetchError || !job) {
     return (
-      <div className="min-h-screen bg-brand-dark flex flex-col items-center justify-center gap-4 px-6">
+      <PageContainer className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
         <XCircle className="w-12 h-12 text-red-400" />
-        <p className="text-white/50">{fetchError || "Job not found."}</p>
+        <p className="text-graphite">{fetchError || "Job not found."}</p>
         <Link
           href="/client"
-          className="text-brand-cyan hover:underline text-sm"
+          className="text-ink hover:underline text-sm"
         >
           ← Back to dashboard
         </Link>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -345,18 +345,15 @@ export default function JobDetailPage(): React.ReactElement {
   const canCancel = CANCELLABLE.has(job.status);
 
   return (
-    <div className="min-h-screen bg-brand-dark pt-10 pb-24 relative overflow-hidden">
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-
-      <div className="container mx-auto px-6 max-w-3xl relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+    <PageContainer className="max-w-3xl">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
           <Link
             href="/client"
-            className="inline-flex items-center gap-2 text-white/40 hover:text-white mb-8 transition-colors text-sm"
+            className="inline-flex items-center gap-2 text-graphite hover:text-ink mb-8 transition-colors text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Dashboard
@@ -365,10 +362,10 @@ export default function JobDetailPage(): React.ReactElement {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1.5">
+              <h1 className="text-2xl font-bold text-ink mb-1.5">
                 {job.title}
               </h1>
-              <p className="font-mono text-xs text-white/25">{job.id}</p>
+              <p className="font-mono text-xs text-stone">{job.id}</p>
             </div>
             <div
               className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full border shrink-0 ${cfg.bg} ${cfg.border}`}
@@ -395,10 +392,10 @@ export default function JobDetailPage(): React.ReactElement {
             ].map(({ label, value }) => (
               <div
                 key={label}
-                className="rounded-2xl border border-white/5 bg-brand-gray/20 p-4"
+                className="rounded-none border border-hairline bg-canvas p-4"
               >
-                <p className="text-xs text-white/30 mb-1">{label}</p>
-                <p className="text-white font-medium text-sm truncate">
+                <p className="text-xs text-stone mb-1">{label}</p>
+                <p className="text-ink font-medium text-sm truncate">
                   {value}
                 </p>
               </div>
@@ -407,16 +404,16 @@ export default function JobDetailPage(): React.ReactElement {
 
           {/* Assigned node */}
           {job.provider && (
-            <div className="rounded-3xl border border-white/10 bg-brand-gray/20 backdrop-blur-xl p-6 mb-6 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-brand-cyan/10 flex items-center justify-center shrink-0">
-                <Cpu className="w-5 h-5 text-brand-cyan" />
+            <div className="rounded-none border border-hairline bg-canvas p-6 mb-6 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-none bg-surface-cool flex items-center justify-center shrink-0">
+                <Cpu className="w-5 h-5 text-ink" />
               </div>
               <div>
-                <p className="text-xs text-white/30 mb-0.5">Assigned Node</p>
-                <p className="text-white font-semibold">
+                <p className="text-xs text-stone mb-0.5">Assigned Node</p>
+                <p className="text-ink font-semibold">
                   {job.provider.gpuModel}
                 </p>
-                <p className="text-xs text-white/30 mt-0.5">
+                <p className="text-xs text-stone mt-0.5">
                   {job.provider.vramGB} GB VRAM &nbsp;·&nbsp; Tier{" "}
                   {job.provider.tier}
                   {job.provider.location && (
@@ -428,24 +425,24 @@ export default function JobDetailPage(): React.ReactElement {
           )}
 
           {/* I/O URIs */}
-          <div className="rounded-3xl border border-white/10 bg-brand-gray/20 backdrop-blur-xl p-6 mb-6 space-y-4">
+          <div className="rounded-none border border-hairline bg-canvas p-6 mb-6 space-y-4">
             <div>
-              <p className="text-xs text-white/30 uppercase tracking-widest mb-2">
+              <p className="text-xs text-stone uppercase tracking-widest mb-2">
                 Input
               </p>
-              <p className="font-mono text-sm text-white/60 break-all">
+              <p className="font-mono text-sm text-graphite break-all">
                 {job.inputUri}
               </p>
             </div>
             {job.outputUri && (
               <div>
-                <p className="text-xs text-white/30 uppercase tracking-widest mb-2">
+                <p className="text-xs text-stone uppercase tracking-widest mb-2">
                   Output
                 </p>
                 <button
                   type="button"
                   onClick={handleDownloadOutput}
-                  className="font-mono text-sm text-brand-cyan break-all hover:underline inline-flex items-center gap-1.5"
+                  className="font-mono text-sm text-ink break-all hover:underline inline-flex items-center gap-1.5"
                 >
                   Download output
                   <ExternalLink className="w-3.5 h-3.5 shrink-0" />
@@ -460,8 +457,8 @@ export default function JobDetailPage(): React.ReactElement {
               job.status === "FAILED" ||
               job.status === "PAID" ||
               job.status === "REFUNDED") && (
-              <div className="rounded-3xl border border-white/10 bg-brand-gray/20 backdrop-blur-xl p-6 mb-6">
-                <h2 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-4">
+              <div className="rounded-none border border-hairline bg-canvas p-6 mb-6">
+                <h2 className="text-xs font-semibold text-graphite uppercase tracking-widest mb-4">
                   Execution Logs
                 </h2>
                 <LogViewer jobId={job.id} />
@@ -470,23 +467,23 @@ export default function JobDetailPage(): React.ReactElement {
 
           {/* Output Files */}
           {job.executionMetadata?.outputFiles?.length ? (
-            <div className="rounded-3xl border border-white/10 bg-brand-gray/20 backdrop-blur-xl p-6 mb-6">
-              <h2 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-4">
+            <div className="rounded-none border border-hairline bg-canvas p-6 mb-6">
+              <h2 className="text-xs font-semibold text-graphite uppercase tracking-widest mb-4">
                 Output Files
               </h2>
               <div className="space-y-3">
                 {job.executionMetadata.outputFiles.map((file) => (
                   <div
                     key={file.filename}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 p-4"
+                    className="flex items-center justify-between gap-3 rounded-none border border-hairline bg-canvas p-4"
                   >
-                    <span className="text-sm text-white/70 truncate">
+                    <span className="text-sm text-graphite truncate">
                       {file.filename} ({(file.size / 1024).toFixed(1)} KB)
                     </span>
                     <button
                       type="button"
                       onClick={() => handleDownloadOutputFile(file)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-all text-sm"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-none border border-hairline text-graphite hover:text-ink hover:border-hairline transition-all text-sm"
                     >
                       Download
                       <ExternalLink className="w-4 h-4" />
@@ -499,8 +496,8 @@ export default function JobDetailPage(): React.ReactElement {
 
           {/* Execution Stats */}
           {job.executionMetadata && (
-            <div className="rounded-3xl border border-white/10 bg-brand-gray/20 backdrop-blur-xl p-6 mb-6">
-              <h2 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-4">
+            <div className="rounded-none border border-hairline bg-canvas p-6 mb-6">
+              <h2 className="text-xs font-semibold text-graphite uppercase tracking-widest mb-4">
                 Execution Stats
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -533,10 +530,10 @@ export default function JobDetailPage(): React.ReactElement {
           )}
 
           {/* Event timeline */}
-          <div className="grid grid-cols-2 gap-4 rounded-2xl border border-white/10 bg-white/[0.025] p-5 mb-6">
+          <div className="grid grid-cols-2 gap-4 rounded-none border border-hairline bg-white/[0.025] p-5 mb-6">
             <div>
-              <p className="text-xs text-white/30 mb-1">Budget (locked)</p>
-              <p className="text-xl font-bold text-white font-mono">
+              <p className="text-xs text-stone mb-1">Budget (locked)</p>
+              <p className="text-xl font-bold text-ink font-mono">
                 ◎ {Number(job.escrow?.amount ?? job.budget).toFixed(3)} SOL
               </p>
             </div>
@@ -546,7 +543,7 @@ export default function JobDetailPage(): React.ReactElement {
                 <p className="text-xl font-bold text-green-400 font-mono">
                   ◎ {Number(job.finalCost).toFixed(3)} SOL
                 </p>
-                <p className="text-xs text-white/25 mt-1">
+                <p className="text-xs text-stone mt-1">
                   ◎ {(Number(job.budget) - Number(job.finalCost)).toFixed(3)}{" "}
                   SOL saved (5% platform fee)
                 </p>
@@ -558,20 +555,20 @@ export default function JobDetailPage(): React.ReactElement {
                 <p className="text-xl font-bold text-green-400 font-mono">
                   ◎ {Number(job.budget).toFixed(3)} SOL
                 </p>
-                <p className="text-xs text-white/25 mt-1">
+                <p className="text-xs text-stone mt-1">
                   Full refund on failure
                 </p>
               </div>
             )}
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-brand-gray/20 backdrop-blur-xl p-8 mb-6">
-            <h2 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-8">
+          <div className="rounded-none border border-hairline bg-canvas p-8 mb-6">
+            <h2 className="text-xs font-semibold text-graphite uppercase tracking-widest mb-8">
               Timeline
             </h2>
 
             {job.events.length === 0 ? (
-              <p className="text-white/25 text-sm">No events yet.</p>
+              <p className="text-stone text-sm">No events yet.</p>
             ) : (
               <div className="relative">
                 {job.events.map((ev, i) => {
@@ -582,8 +579,8 @@ export default function JobDetailPage(): React.ReactElement {
                         <div
                           className={`w-2.5 h-2.5 rounded-full mt-1 shrink-0 ${
                             isLast
-                              ? "bg-brand-cyan shadow-[0_0_8px_#00ffd1]"
-                              : "bg-white/20"
+                              ? "bg-primary text-on-primary shadow-[0_0_8px_#00ffd1]"
+                              : "bg-surface-cool"
                           }`}
                         />
                         {!isLast && (
@@ -591,10 +588,10 @@ export default function JobDetailPage(): React.ReactElement {
                         )}
                       </div>
                       <div className={`pb-6 ${isLast ? "pb-0" : ""}`}>
-                        <p className="text-white text-sm font-medium">
+                        <p className="text-ink text-sm font-medium">
                           {ev.type.replace(/_/g, " ")}
                         </p>
-                        <p className="text-xs text-white/30 mt-0.5 flex items-center gap-1">
+                        <p className="text-xs text-stone mt-0.5 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {fmtDate(ev.createdAt)}
                         </p>
@@ -612,7 +609,7 @@ export default function JobDetailPage(): React.ReactElement {
               <button
                 type="button"
                 onClick={fetchJob}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all text-sm"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-none border border-hairline text-graphite hover:text-ink hover:border-hairline transition-all text-sm"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh
@@ -623,7 +620,7 @@ export default function JobDetailPage(): React.ReactElement {
                 type="button"
                 onClick={handleCancel}
                 disabled={cancelling}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-none border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {cancelling ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -634,8 +631,7 @@ export default function JobDetailPage(): React.ReactElement {
               </button>
             )}
           </div>
-        </motion.div>
-      </div>
-    </div>
+      </motion.div>
+    </PageContainer>
   );
 }

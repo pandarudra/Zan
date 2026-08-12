@@ -1,25 +1,25 @@
-import { prisma } from '@repo/db'
+import { prisma } from "@repo/db";
+import { logger } from "../lib/logger.js";
 
 export function startHeartbeatMonitor() {
   setInterval(async () => {
     try {
       const result = await prisma.provider.updateMany({
         where: {
-          status: { in: ['ACTIVE', 'BUSY'] },
+          status: { in: ["ACTIVE", "BUSY"] },
           lastHeartbeat: {
-            lt: new Date(Date.now() - 90_000) // missed 3 heartbeats
-          }
+            lt: new Date(Date.now() - 90_000), // missed 3 heartbeats
+          },
         },
-        data: { status: 'OFFLINE' }
-      })
+        data: { status: "OFFLINE" },
+      });
 
       if (result.count > 0) {
-        console.log(`Marked ${result.count} providers offline`)
+        logger.info(`Marked ${result.count} providers offline`);
       }
     } catch (err) {
-      console.error('Heartbeat monitor error:', err)
+      logger.error({ err }, "Heartbeat monitor error:");
     }
-  }, 30_000)
-
-  console.log('Heartbeat monitor started')
+  }, 30_000);
+  logger.info("Heartbeat monitor started");
 }

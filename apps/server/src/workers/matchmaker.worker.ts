@@ -4,6 +4,7 @@ import { makeRedisConnection } from "../lib/redis.js";
 import { getConnectedProviderIds, sendJobToProvider } from "../ws/server.js";
 import { QUEUE_NAME, type JobMatchPayload } from "../queues/jobQueue.js";
 import { CONTAINERS, generateReadSASUrl } from "../lib/azure.js";
+import { logger } from "../lib/logger.js";
 
 async function processJob(bullJob: BullJob<JobMatchPayload>): Promise<void> {
   const { jobId } = bullJob.data;
@@ -27,12 +28,12 @@ async function processJob(bullJob: BullJob<JobMatchPayload>): Promise<void> {
   });
 
   if (!job) {
-    console.warn(`[Matchmaker] Job ${jobId} not found, discarding`);
+    logger.warn(`[Matchmaker] Job ${jobId} not found, discarding`);
     return;
   }
 
   if (job.status !== "FUNDED") {
-    console.log(`[Matchmaker] Job ${jobId} is ${job.status}, skipping`);
+    logger.info(`[Matchmaker] Job ${jobId} is ${job.status}, skipping`);
     return;
   }
 
@@ -103,7 +104,7 @@ async function processJob(bullJob: BullJob<JobMatchPayload>): Promise<void> {
     const heartbeatFreshCount = await prisma.provider.count({
       where: { status: "ACTIVE", lastHeartbeat: { gte: heartbeatCutoff } },
     });
-    console.log(
+    logger.info(
       `[Matchmaker] no eligible provider for ${jobId} (need vram>=${enforceVramFilter ? (job.requiredVramGB ?? 0) : 0}, tier>=${job.requiredGpuTier ?? 0}, active=${onlineCount}, freshHeartbeat=${heartbeatFreshCount}, wsConnected=${connectedProviderIds.length}, type=${job.type})`,
     );
     throw new Error("NO_PROVIDER_AVAILABLE");
@@ -140,9 +141,9 @@ async function processJob(bullJob: BullJob<JobMatchPayload>): Promise<void> {
         provider.user.walletAddress,
       );
     } catch (err) {
-      console.error(
+      logger.error(
+        { err },
         `[Matchmaker] Failed to assign provider on-chain for job ${jobId}`,
-        err,
       );
       // We might want to handle this, but for now just log it
     }
@@ -163,12 +164,12 @@ async function processJob(bullJob: BullJob<JobMatchPayload>): Promise<void> {
         ); // 6 hours
       }
     } catch (e) {
-      console.warn(`[Matchmaker] Error parsing inputUri URL:`, e);
+      logger.warn({ err: e }, `[Matchmaker] Error parsing inputUri URL:`);
     }
   } catch (err) {
-    console.warn(
+    logger.warn(
+      { err },
       `[Matchmaker] Failed to presign inputUri, using original`,
-      err,
     );
   }
 
@@ -184,11 +185,11 @@ async function processJob(bullJob: BullJob<JobMatchPayload>): Promise<void> {
   });
 
   if (!delivered) {
-    console.warn(
+    logger.warn(
       `[Matchmaker] Provider ${provider.id} offline — job ${jobId} assigned in DB, awaiting WS reconnect`,
     );
   } else {
-    console.log(
+    logger.info(
       `[Matchmaker] Job ${jobId} → Provider ${provider.id} (${provider.gpuModel}, tier ${provider.tier}) ✓`,
     );
   }
@@ -202,26 +203,25 @@ export function startMatchmakerWorker(): Worker<JobMatchPayload> {
   });
 
   worker.on("completed", (job) => {
-    console.log(`[Matchmaker] ✓ job ${job.data.jobId} matched`);
+    logger.info(`[Matchmaker] ✓ job ${job.data.jobId} matched`);
   });
 
   worker.on("failed", (job, err) => {
     if (err.message === "NO_PROVIDER_AVAILABLE") {
-      console.log(
+      logger.info(
         `[Matchmaker] No provider for job ${job?.data.jobId} — attempt ${job?.attemptsMade}/15, retrying…`,
       );
     } else {
-      console.error(
-        `[Matchmaker] ✗ job ${job?.data.jobId} failed:`,
-        err.message,
+      logger.error(
+        `[Matchmaker] ✗ job ${job?.data.jobId} failed: ${err.message}`,
       );
     }
   });
 
   worker.on("error", (err) => {
-    console.error("[Matchmaker] Worker error:", err.message);
+    logger.error({ err: err.message }, "[Matchmaker] Worker error");
   });
 
-  console.log("[Matchmaker] Worker started (concurrency=5)");
+  logger.info("[Matchmaker] Worker started (concurrency=5)");
   return worker;
 }

@@ -6,6 +6,7 @@ import { enqueueJob } from "../queues/jobQueue.js";
 import { JOB_TYPES } from "../config/jobTypes.js";
 import type { JobTypeKey } from "../config/jobTypes.js";
 import { CONTAINERS, generateReadSASUrl } from "../lib/azure.js";
+import { logger } from "../lib/logger.js";
 import { sendCancelToProvider } from "../ws/server.js";
 import { debug } from "console";
 
@@ -35,7 +36,10 @@ async function streamAzureBlob(
   const response = await fetch(presigned);
 
   if (!response.ok) {
-    console.error("[streamAzureBlob] Storage response", response.status);
+    logger.error(
+      { status: response.status },
+      "[streamAzureBlob] Storage response",
+    );
     res.status(502).json({ error: "Failed to fetch file from storage" });
     return;
   }
@@ -185,7 +189,7 @@ export const prepareJobSubmit = async (req: Request, res: Response) => {
       jobNumericId: job.jobNumericId.toString(),
     });
   } catch (err) {
-    console.error("[prepareJobSubmit]", err);
+    logger.error({ err }, "[prepareJobSubmit]");
     res.status(500).json({ error: "Could not prepare job submission" });
   }
 };
@@ -195,7 +199,7 @@ export const submitJob = async (req: Request, res: Response) => {
   const clientId = (req as any).user.id;
   const { jobId, stakeSignature, clientWalletAddress } = req.body;
 
-  console.log(req.body);
+  logger.debug({ body: req.body });
 
   if (
     !jobId?.trim() ||
@@ -268,7 +272,7 @@ export const submitJob = async (req: Request, res: Response) => {
 
     res.json({ success: true, jobId: job.id });
   } catch (err) {
-    console.error("[submitJob]", err);
+    logger.error({ err }, "[submitJob]");
     res.status(500).json({ error: "Submission failed" });
   }
 };
@@ -344,7 +348,7 @@ export const getJobById = async (req: Request, res: Response) => {
 
     res.json({ job: responseJob });
   } catch (err) {
-    console.error("[getJobById]", err);
+    logger.error({ err }, "[getJobById]");
     res.status(500).json({ error: "Failed to fetch job" });
   }
 };
@@ -395,7 +399,7 @@ export const getJobLogs = async (req: Request, res: Response) => {
 
     await streamAzureBlob(blobName, res);
   } catch (err) {
-    console.error("[getJobLogs]", err);
+    logger.error({ err }, "[getJobLogs]");
     res.status(500).json({ error: "Failed to fetch logs" });
   }
 };
@@ -441,7 +445,7 @@ export const getJobOutput = async (req: Request, res: Response) => {
     const downloadName = blobName.split("/").pop() || "output";
     await streamAzureBlob(blobName, res, downloadName);
   } catch (err) {
-    console.error("[getJobOutput]", err);
+    logger.error({ err }, "[getJobOutput]");
     res.status(500).json({ error: "Failed to fetch output" });
   }
 };
@@ -505,7 +509,7 @@ export const getJobOutputFile = async (req: Request, res: Response) => {
 
     await streamAzureBlob(blobName, res, fileName);
   } catch (err) {
-    console.error("[getJobOutputFile]", err);
+    logger.error({ err }, "[getJobOutputFile]");
     res.status(500).json({ error: "Failed to fetch output file" });
   }
 };
@@ -541,7 +545,7 @@ export const getMyJobs = async (req: Request, res: Response) => {
 
     res.json({ jobs, total, page, limit });
   } catch (err) {
-    console.error("[getMyJobs]", err);
+    logger.error({ err }, "[getMyJobs]");
     res.status(500).json({ error: "Failed to fetch jobs" });
   }
 };
@@ -576,7 +580,7 @@ export const getMyStats = async (req: Request, res: Response) => {
       escrowLocked: Number(lockedResult._sum.amount ?? 0),
     });
   } catch (err) {
-    console.error("[getMyStats]", err);
+    logger.error({ err }, "[getMyStats]");
     res.status(500).json({ error: "Failed to fetch dashboard stats" });
   }
 };
@@ -711,9 +715,9 @@ export const jobComplete = async (req: Request, res: Response) => {
               jobDetails.clientWalletAddress,
             );
           } catch (refundErr) {
-            console.error(
+            logger.error(
+              { err: refundErr },
               `[reportJobFailed] On-chain refund failed for job ${jobId}`,
-              refundErr,
             );
           }
         }
@@ -764,7 +768,7 @@ export const jobComplete = async (req: Request, res: Response) => {
 
     res.json({ ok: true });
   } catch (err) {
-    console.error("[jobComplete]", err);
+    logger.error({ err }, "[jobComplete]");
     res.status(500).json({ error: "Job completion failed" });
   }
 };
@@ -794,7 +798,7 @@ export const updateJobStatus = async (req: Request, res: Response) => {
 
     res.json({ ok: true });
   } catch (err) {
-    console.error("[updateJobStatus]", err);
+    logger.error({ err }, "[updateJobStatus]");
     res.status(500).json({ error: "Failed to update status" });
   }
 };
@@ -846,11 +850,14 @@ export const cancelJob = async (req: Request, res: Response) => {
               data: { refundTxSig, refundedAt: new Date() },
             })
             .catch(() => {});
-          console.log(`[cancelJob] On-chain refund successful: ${refundTxSig}`);
+          logger.info(
+            { refundTxSig },
+            `[cancelJob] On-chain refund successful: ${refundTxSig}`,
+          );
         } catch (refundErr) {
-          console.error(
-            `[cancelJob] On-chain refund failed for job ${jobId}:`,
-            refundErr,
+          logger.error(
+            { err: refundErr },
+            `[cancelJob] On-chain refund failed for job ${jobId}`,
           );
           return res.status(502).json({
             error:
@@ -858,7 +865,7 @@ export const cancelJob = async (req: Request, res: Response) => {
           });
         }
       } else {
-        console.warn(
+        logger.warn(
           `[cancelJob] Missing clientWalletAddress or jobNumericId for job ${jobId}, skipping on-chain refund`,
         );
       }
@@ -900,7 +907,7 @@ export const cancelJob = async (req: Request, res: Response) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("[cancelJob]", err);
+    logger.error({ err }, "[cancelJob]");
     res.status(500).json({ error: "Cancel failed" });
   }
 };

@@ -1,5 +1,6 @@
 import "dotenv/config";
 import pg from "pg";
+const logger = console;
 
 const connectionString =
   process.env.DIRECT_URL?.trim() || process.env.DATABASE_URL?.trim();
@@ -9,7 +10,6 @@ if (!connectionString) {
 }
 
 const pool = new pg.Pool({ connectionString });
-
 
 async function main() {
   await pool.query(`
@@ -26,13 +26,13 @@ async function main() {
     RESTART IDENTITY CASCADE
   `);
 
-  console.log("Database reset complete.");
+  logger.info("Database reset complete.");
 }
 
 main()
   .catch((error) => {
-    console.error("Database reset failed.");
-    console.error(error);
+    logger.error("Database reset failed.");
+    logger.error(error);
     process.exitCode = 1;
   })
   .finally(async () => {

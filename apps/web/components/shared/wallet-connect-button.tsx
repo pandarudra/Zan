@@ -20,7 +20,7 @@ export function WalletConnectButton({
     return (
       <button
         disabled
-        className={`flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/50 ${className}`}
+        className={`flex items-center gap-2 rounded-none border border-hairline bg-surface-cool px-4 py-2.5 text-sm text-graphite ${className}`}
       >
         <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
         Connecting...
@@ -32,21 +32,21 @@ export function WalletConnectButton({
     return (
       <div className={`flex items-center gap-3 ${className}`}>
         {showBalance && balance !== null && (
-          <span className="text-sm font-semibold text-white">
+          <span className="text-sm font-semibold text-ink">
             ◎ {balance.toFixed(3)} SOL
           </span>
         )}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setVisible(true)}
-            className="flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-2.5 text-sm font-semibold text-green-400 transition-colors hover:bg-green-500/20"
+            className="flex items-center gap-2 rounded-none border border-green-500/30 bg-green-500/10 px-4 py-2.5 text-sm font-semibold text-green-400 transition-colors hover:bg-green-500/20"
           >
             <span className="h-2 w-2 rounded-full bg-green-400" />
             {shortAddress}
           </button>
           <button
             onClick={() => disconnect()}
-            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-all"
+            className="rounded-none border border-hairline bg-surface-cool px-3 py-2.5 text-xs font-semibold text-graphite hover:text-ink hover:bg-surface-cool transition-all"
           >
             Disconnect
           </button>
@@ -58,7 +58,7 @@ export function WalletConnectButton({
   return (
     <button
       onClick={() => setVisible(true)}
-      className={`flex items-center gap-2 rounded-xl bg-brand-cyan px-5 py-2.5 text-sm font-bold text-brand-dark transition-all hover:bg-white ${className}`}
+      className={`flex items-center gap-2 rounded-none bg-primary text-on-primary px-5 py-2.5 text-sm font-bold text-on-primary transition-all hover:bg-white ${className}`}
     >
       <span>◎</span>
       Connect Wallet

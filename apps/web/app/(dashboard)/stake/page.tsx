@@ -116,11 +116,10 @@ function StakeContent() {
   }, [txSignature]);
 
   return (
-    <div className="min-h-screen bg-brand-dark flex items-center justify-center relative overflow-hidden px-6 pt-20 pb-20">
+    <div className="min-h-full flex items-center justify-center relative px-6 py-10">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/8 blur-[180px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-brand-cyan/5 blur-[150px] rounded-full pointer-events-none" />
+
+
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -128,19 +127,19 @@ function StakeContent() {
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-lg relative z-10"
       >
-        <div className="rounded-3xl border border-white/10 bg-brand-gray/50 backdrop-blur-2xl p-10 shadow-2xl relative overflow-hidden">
+        <div className="rounded-none border border-hairline bg-canvas p-10 relative overflow-hidden">
           {/* Top accent */}
-          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-50" />
+
 
           {/* Header */}
           <div className="text-center mb-10 flex flex-col items-center">
             <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
               <Coins className="w-8 h-8 text-amber-400" />
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
+            <h1 className="text-3xl font-bold tracking-tight text-ink mb-2">
               Provider Stake
             </h1>
-            <p className="text-white/50 font-light">
+            <p className="text-graphite font-light">
               Stake {STAKE_AMOUNT_SOL} SOL to register your machine on the Zan
               network.
             </p>
@@ -154,7 +153,7 @@ function StakeContent() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3"
+                  className="p-4 rounded-none bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3"
                 >
                   <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                   <p>{error}</p>
@@ -169,7 +168,7 @@ function StakeContent() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col gap-6"
               >
-                <div className="p-6 rounded-2xl bg-green-500/10 border border-green-500/20 text-center">
+                <div className="p-6 rounded-none bg-green-500/10 border border-green-500/20 text-center">
                   <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
                     <CheckCircle2 className="w-6 h-6 text-green-400" />
                   </div>
@@ -183,46 +182,46 @@ function StakeContent() {
                 </div>
 
                 {/* Transaction signature */}
-                <div className="bg-black/40 rounded-2xl border border-white/5 p-6">
-                  <label className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3 block">
+                <div className="bg-canvas rounded-none border border-hairline p-6">
+                  <label className="text-xs font-semibold text-graphite uppercase tracking-wider mb-3 block">
                     Transaction Signature
                   </label>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 text-xs text-amber-400 font-mono bg-black/30 rounded-lg px-3 py-2.5 break-all select-all border border-white/5">
+                    <code className="flex-1 text-xs text-amber-400 font-mono bg-canvas rounded-lg px-3 py-2.5 break-all select-all border border-hairline">
                       {txSignature}
                     </code>
                     <button
                       onClick={handleCopy}
-                      className="shrink-0 w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all"
+                      className="shrink-0 w-10 h-10 rounded-lg bg-surface-cool hover:bg-surface-cool border border-hairline flex items-center justify-center transition-all"
                       title="Copy to clipboard"
                     >
                       {copied ? (
                         <Check className="w-4 h-4 text-green-400" />
                       ) : (
-                        <Copy className="w-4 h-4 text-white/60" />
+                        <Copy className="w-4 h-4 text-graphite" />
                       )}
                     </button>
                   </div>
                 </div>
 
                 {/* Instructions */}
-                <div className="bg-amber-500/5 rounded-2xl border border-amber-500/10 p-6">
+                <div className="bg-amber-500/5 rounded-none border border-amber-500/10 p-6">
                   <h4 className="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
                     <ArrowRight className="w-4 h-4" />
                     Next Steps
                   </h4>
-                  <ol className="text-sm text-white/60 space-y-2 list-decimal list-inside">
+                  <ol className="text-sm text-graphite space-y-2 list-decimal list-inside">
                     <li>Copy the transaction signature above</li>
                     <li>
                       Open the{" "}
-                      <span className="text-white font-medium">
+                      <span className="text-ink font-medium">
                         Zan Provider Agent
                       </span>{" "}
                       desktop app
                     </li>
                     <li>
                       Paste it in the{" "}
-                      <span className="text-white font-medium">
+                      <span className="text-ink font-medium">
                         &quot;Stake Transaction Signature&quot;
                       </span>{" "}
                       field
@@ -235,7 +234,7 @@ function StakeContent() {
                     </li>
                     <li>
                       Click{" "}
-                      <span className="text-white font-medium">
+                      <span className="text-ink font-medium">
                         &quot;Verify Stake & Register Machine&quot;
                       </span>
                     </li>
@@ -247,7 +246,7 @@ function StakeContent() {
                   href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors"
+                  className="flex items-center justify-center gap-2 text-sm text-graphite hover:text-graphite transition-colors"
                 >
                   View on Solana Explorer
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -256,16 +255,16 @@ function StakeContent() {
             ) : (
               <>
                 {/* Stake details */}
-                <div className="bg-black/30 rounded-2xl border border-white/5 p-6">
+                <div className="bg-canvas rounded-none border border-hairline p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm text-white/50">Stake Amount</span>
+                    <span className="text-sm text-graphite">Stake Amount</span>
                     <span className="text-2xl font-bold text-amber-400">
                       {STAKE_AMOUNT_SOL}{" "}
                       <span className="text-base text-amber-400/70">SOL</span>
                     </span>
                   </div>
-                  <div className="h-px bg-white/5 mb-4" />
-                  <ul className="text-xs text-white/40 space-y-1.5">
+                  <div className="h-px bg-surface-cool mb-4" />
+                  <ul className="text-xs text-graphite space-y-1.5">
                     <li className="flex items-start gap-2">
                       <span className="text-amber-400 mt-0.5">•</span>
                       Stake secures your provider slot on the network
@@ -282,8 +281,8 @@ function StakeContent() {
                 </div>
 
                 {/* Wallet connect */}
-                <div className="flex flex-col items-center gap-4 bg-black/30 p-6 rounded-2xl border border-white/5">
-                  <p className="text-sm text-white/60 text-center mb-1">
+                <div className="flex flex-col items-center gap-4 bg-canvas p-6 rounded-none border border-hairline">
+                  <p className="text-sm text-graphite text-center mb-1">
                     {connected
                       ? `Connected: ${publicKey?.toBase58().slice(0, 6)}...${publicKey?.toBase58().slice(-4)}`
                       : "Connect your Solana wallet to stake"}
@@ -308,7 +307,7 @@ function StakeContent() {
                     <button
                       onClick={handleStake}
                       disabled={loading}
-                      className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold hover:from-amber-400 hover:to-amber-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-amber-500/20"
+                      className="w-full flex items-center justify-center gap-2 py-4 rounded-none bg-primary text-on-primary font-bold hover:bg-surface-cool hover:text-ink transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                       {loading ? (
                         <>
@@ -322,7 +321,7 @@ function StakeContent() {
                         </>
                       )}
                     </button>
-                    <p className="text-xs text-center text-white/30 mt-3">
+                    <p className="text-xs text-center text-stone mt-3">
                       This will transfer {STAKE_AMOUNT_SOL} SOL to the Zan
                       escrow program. You&apos;ll need to approve the
                       transaction in your wallet.
@@ -342,7 +341,7 @@ export default function StakePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-brand-dark flex items-center justify-center text-white/50">
+        <div className="min-h-screen bg-canvas text-ink flex items-center justify-center text-graphite">
           Loading staking...
         </div>
       }

@@ -1,10 +1,10 @@
-// src/controllers/auth.controller.ts
 import type { Request, Response } from "express";
 import { prisma } from "@repo/db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { requireEnv } from "../env.js";
 import crypto from "crypto";
+import { logger } from "../lib/logger.js";
 import { PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
@@ -25,9 +25,9 @@ export const registerUser = async (req: Request, res: Response) => {
     if (existing)
       return res.status(409).json({ error: "Email already registered" });
 
-    const hashed = await bcrypt.hash(password, 12);
+    const hashedpassword = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
-      data: { name, email, password: hashed, role: "PROVIDER" },
+      data: { name, email, password: hashedpassword, role: "PROVIDER" },
       select: {
         id: true,
         name: true,
@@ -37,10 +37,12 @@ export const registerUser = async (req: Request, res: Response) => {
       },
     });
 
+    // user = {id , name , email , role , walletAddress}
+
     const token = signToken(user.id);
     res.status(201).json({ token, userId: user.id, user });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ error: "Registration failed" });
   }
 };
@@ -49,7 +51,7 @@ export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: "email and password required" });
+    return res.status(400).json({ error: "Email and password required" });
   }
 
   try {
@@ -62,19 +64,22 @@ export const loginUser = async (req: Request, res: Response) => {
     if (!valid) return res.status(401).json({ error: "Invalid credentials" });
 
     const token = signToken(user.id);
-    res.json({
+
+    const resUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      walletAddress: user.walletAddress,
+    };
+
+    res.status(201).json({
       token,
       userId: user.id,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        walletAddress: user.walletAddress,
-      },
+      user: resUser,
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ error: "Login failed" });
   }
 };
@@ -150,7 +155,7 @@ export const getWalletStatus = async (req: Request, res: Response) => {
       addressStatus,
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ error: "Failed to fetch wallet status" });
   }
 };
@@ -226,7 +231,7 @@ export const updateWallet = async (req: Request, res: Response) => {
 
     res.json({ success: true, user: updatedUser });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ error: "Failed to update wallet" });
   }
 };

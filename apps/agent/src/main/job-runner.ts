@@ -10,6 +10,9 @@ import { store } from "./store";
 import { agentRequest } from "./api-client";
 import { getGpuMetrics } from "./detect";
 import { uploadOutputDirectory, uploadLogs } from "./storage";
+import pino from "pino";
+
+const logger = pino();
 
 const execAsync = promisify(exec);
 
@@ -304,7 +307,7 @@ export async function runJob(
   onProgress?: (msg: string) => void,
 ): Promise<void> {
   const log = (msg: string) => {
-    console.log(`[JobRunner] ${msg}`);
+    logger.info(`[JobRunner] ${msg}`);
     onProgress?.(msg);
   };
 

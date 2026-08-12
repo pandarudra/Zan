@@ -1,6 +1,9 @@
 import { store } from "./store";
 import { getGpuMetrics } from "./detect";
 import { agentRequest } from "./api-client";
+import pino from "pino";
+
+const logger = pino();
 
 export class HeartbeatService {
   private interval: NodeJS.Timeout | null = null;
@@ -10,7 +13,7 @@ export class HeartbeatService {
     if (this.interval) return; // already running
     this.ping();
     this.interval = setInterval(() => this.ping(), this.INTERVAL_MS);
-    console.log("[Heartbeat] Started");
+    logger.info("[Heartbeat] Started");
   }
 
   stop() {
@@ -18,7 +21,7 @@ export class HeartbeatService {
       clearInterval(this.interval);
       this.interval = null;
     }
-    console.log("[Heartbeat] Stopped");
+    logger.info("[Heartbeat] Stopped");
   }
 
   isRunning() {

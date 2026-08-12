@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { getSession, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Brain,
@@ -29,8 +28,9 @@ import {
 import { api } from "@/lib/api";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { useEscrow } from "@/hooks/use-escrow";
-import { SystemProgram } from "@solana/web3.js";
+
 import { WalletConnectButton } from "@/components/shared/wallet-connect-button";
+import { PageContainer } from "@/components/shared/page-container";
 
 //Job type definitions
 const JOB_TYPE_DEFS = [
@@ -182,13 +182,13 @@ function FieldLabel({
   hint?: string;
 }): React.ReactElement {
   return (
-    <label className="mb-2.5 flex items-center justify-between gap-4 text-sm font-medium text-white/70">
+    <label className="mb-2.5 flex items-center justify-between gap-4 text-sm font-medium text-graphite">
       <span>
         {children}
         {required && <span className="ml-1 text-red-400">*</span>}
       </span>
       {hint && (
-        <span className="text-xs font-normal text-white/30">{hint}</span>
+        <span className="text-xs font-normal text-stone">{hint}</span>
       )}
     </label>
   );
@@ -237,12 +237,12 @@ function FileUploader({
 
   return (
     <div className="mt-3">
-      <label className="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-white/20 p-6 transition-colors hover:border-brand-cyan/40">
-        <Upload className="h-6 w-6 text-white/30" />
-        <span className="text-sm text-white/40">
+      <label className="flex cursor-pointer flex-col items-center gap-2 rounded-none border-2 border-dashed border-hairline p-6 transition-colors hover:border-ink">
+        <Upload className="h-6 w-6 text-stone" />
+        <span className="text-sm text-graphite">
           {uploading ? "Uploading..." : "Drop file here or click to upload"}
         </span>
-        <span className="text-xs text-white/25">
+        <span className="text-xs text-stone">
           .py · .zip · .json · .csv · .txt · .blend · 100MB max
         </span>
         <input
@@ -256,7 +256,7 @@ function FileUploader({
         />
       </label>
       {uploading && (
-        <div className="mt-2 flex items-center gap-2 text-sm text-white/40">
+        <div className="mt-2 flex items-center gap-2 text-sm text-graphite">
           <Loader2 className="h-4 w-4 animate-spin" />
           Uploading to MinIO...
         </div>
@@ -393,7 +393,7 @@ export default function SubmitJobPage(): React.ReactElement {
         timeLimitSecs,
       });
 
-      console.log(prepareResponse);
+
 
       const stakeSignature = await createJobEscrow(
         String(prepareResponse.jobNumericId),
@@ -406,7 +406,7 @@ export default function SubmitJobPage(): React.ReactElement {
         stakeSignature,
       });
 
-      console.log(data);
+
 
       router.push(`/client/jobs/${data.jobId}`);
     } catch (err: any) {
@@ -424,33 +424,19 @@ export default function SubmitJobPage(): React.ReactElement {
   };
 
   return (
-    <div className="min-h-screen bg-brand-dark pt-8 pb-20 relative">
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-      <div className="absolute left-1/2 top-0 h-80 w-[900px] -translate-x-1/2 rounded-full bg-brand-cyan/10 blur-[140px] pointer-events-none" />
-
-      <div className="container mx-auto px-6 max-w-7xl relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+    <PageContainer
+      title="Deploy Workload"
+      description="Choose a compute class, define requirements, attach your payload URI, and lock escrow. The matchmaker routes it to the right GPU."
+      actions={
+        <Link
+          href="/client"
+          className="inline-flex items-center gap-2 text-sm font-medium text-graphite transition-colors hover:text-ink"
         >
-          <Link
-            href="/client"
-            className="mb-8 inline-flex items-center gap-2 text-sm text-white/45 transition-colors hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
-          </Link>
-
-          <div className="mb-10">
-            <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
-              Deploy Workload
-            </h1>
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-white/50">
-              Choose a compute class, define requirements, attach your payload
-              URI, and lock escrow. The matchmaker routes it to the right GPU.
-            </p>
-          </div>
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Link>
+      }
+    >
 
           <form
             onSubmit={handleSubmit}
@@ -458,22 +444,22 @@ export default function SubmitJobPage(): React.ReactElement {
           >
             <div className="space-y-8">
               {/*Workload class*/}
-              <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 shadow-2xl backdrop-blur-xl md:p-8">
+              <section className="border border-hairline bg-canvas p-6 md:p-8">
                 <div className="mb-6">
-                  <p className="text-xs font-bold uppercase tracking-widest text-white/35">
+                  <p className="text-xs font-medium uppercase tracking-wider text-stone">
                     Step 1
                   </p>
-                  <h2 className="mt-1 text-2xl font-bold text-white">
+                  <h2 className="mt-1 text-xl font-semibold text-ink">
                     Workload Class
                   </h2>
-                  <p className="mt-1 text-sm text-white/40">
+                  <p className="mt-1 text-sm text-graphite">
                     Select the compute pattern that matches your job.
                   </p>
                 </div>
 
                 {CATEGORIES.map((cat) => (
                   <div key={cat} className="mb-6 last:mb-0">
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/30">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-stone">
                       {cat}
                     </p>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -486,27 +472,27 @@ export default function SubmitJobPage(): React.ReactElement {
                               type="button"
                               onClick={() => handleTypeChange(value)}
                               aria-pressed={selected}
-                              className={`rounded-2xl border p-4 text-left transition-all duration-200 ${
+                              className={`border p-4 text-left transition-colors ${
                                 selected
-                                  ? "border-brand-cyan bg-brand-cyan/10 shadow-[0_0_24px_rgba(0,255,209,0.10)]"
-                                  : "border-white/10 bg-black/30 hover:border-white/25 hover:bg-white/[0.04]"
+                                  ? "border-ink bg-surface-cool"
+                                  : "border-hairline bg-canvas hover:border-ink"
                               }`}
                             >
                               <div className="mb-3 flex items-center justify-between">
                                 <Icon
-                                  className={`h-5 w-5 ${selected ? "text-brand-cyan" : "text-white/35"}`}
+                                  className={`h-5 w-5 ${selected ? "text-ink" : "text-stone"}`}
                                 />
                                 {selected && (
-                                  <CheckCircle2 className="h-4 w-4 text-brand-cyan" />
+                                  <CheckCircle2 className="h-4 w-4 text-ink" />
                                 )}
                               </div>
-                              <p className="text-sm font-bold text-white">
+                              <p className="text-sm font-bold text-ink">
                                 {label}
                               </p>
-                              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/40">
+                              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-graphite">
                                 {desc}
                               </p>
-                              <p className="mt-2 text-xs text-white/25">
+                              <p className="mt-2 text-xs text-stone">
                                 {vramDefault}+ GB VRAM
                               </p>
                             </button>
@@ -519,14 +505,14 @@ export default function SubmitJobPage(): React.ReactElement {
               </section>
 
               {/* Job details*/}
-              <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 shadow-2xl backdrop-blur-xl md:p-8">
+              <section className="border border-hairline bg-canvas p-6 md:p-8">
                 <div className="mb-6 flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-brand-cyan" />
+                  <FileText className="h-5 w-5 text-ink" />
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-white/35">
+                    <p className="text-xs font-bold uppercase tracking-widest text-stone">
                       Step 2
                     </p>
-                    <h2 className="mt-0.5 text-2xl font-bold text-white">
+                    <h2 className="mt-0.5 text-2xl font-bold text-ink">
                       Job Details
                     </h2>
                   </div>
@@ -544,7 +530,7 @@ export default function SubmitJobPage(): React.ReactElement {
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder={`${typeDef.frameworks[0]} ${typeDef.label.toLowerCase()} run`}
                       maxLength={100}
-                      className="h-14 w-full rounded-2xl border border-white/10 bg-black/45 px-5 text-base text-white outline-none transition-all placeholder:text-white/25 focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                      className="h-12 w-full border border-hairline bg-canvas px-4 text-sm text-ink outline-none transition-colors placeholder:text-stone focus:border-ink"
                     />
                   </div>
 
@@ -557,10 +543,10 @@ export default function SubmitJobPage(): React.ReactElement {
                           key={fw}
                           type="button"
                           onClick={() => handleFrameworkClick(fw)}
-                          className={`rounded-xl border px-3.5 py-2 text-sm font-medium transition-all ${
+                          className={`rounded-none border px-3.5 py-2 text-sm font-medium transition-all ${
                             framework === fw
-                              ? "border-brand-cyan bg-brand-cyan/10 text-brand-cyan"
-                              : "border-white/10 bg-black/30 text-white/50 hover:border-white/25 hover:text-white"
+                              ? "border-ink bg-surface-cool text-ink"
+                              : "border-hairline bg-canvas text-graphite hover:border-hairline hover:text-ink"
                           }`}
                         >
                           {fw}
@@ -573,7 +559,7 @@ export default function SubmitJobPage(): React.ReactElement {
                         value={customFramework}
                         onChange={(e) => setCustomFramework(e.target.value)}
                         placeholder="e.g. my-fine-tuned-llama3"
-                        className="mt-3 h-12 w-full rounded-2xl border border-white/10 bg-black/45 px-5 text-sm text-white outline-none transition-all placeholder:text-white/25 focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                        className="mt-3 h-12 w-full rounded-none border border-hairline bg-canvas px-5 text-sm text-ink outline-none transition-all placeholder:text-stone focus:border-ink focus:ring-2 focus:ring-brand-cyan/20"
                       />
                     )}
                   </div>
@@ -591,20 +577,20 @@ export default function SubmitJobPage(): React.ReactElement {
                       }}
                     />
                     <div className="my-3 flex items-center gap-3">
-                      <div className="h-px flex-1 bg-white/10" />
-                      <span className="text-xs text-white/30">
+                      <div className="h-px flex-1 bg-surface-cool" />
+                      <span className="text-xs text-stone">
                         or paste URI manually
                       </span>
-                      <div className="h-px flex-1 bg-white/10" />
+                      <div className="h-px flex-1 bg-surface-cool" />
                     </div>
                     <div className="relative">
-                      <Upload className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-white/30" />
+                      <Upload className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-stone" />
                       <input
                         type="text"
                         value={inputUri}
                         onChange={(e) => setInputUri(e.target.value)}
                         placeholder={typeDef.inputHint}
-                        className="h-14 w-full rounded-2xl border border-white/10 bg-black/45 pl-14 pr-36 font-mono text-sm text-white outline-none transition-all placeholder:text-white/20 focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                        className="h-14 w-full rounded-none border border-hairline bg-canvas pl-14 pr-36 font-mono text-sm text-ink outline-none transition-all placeholder:text-stone focus:border-ink focus:ring-2 focus:ring-brand-cyan/20"
                       />
                       <button
                         type="button"
@@ -613,12 +599,12 @@ export default function SubmitJobPage(): React.ReactElement {
                             `ipfs://Qm${Math.random().toString(36).slice(2, 14)}/${jobType}-input.json`,
                           )
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/50 transition-colors hover:text-white"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-none border border-hairline bg-surface-cool px-3 py-1.5 text-xs text-graphite transition-colors hover:text-ink"
                       >
                         Use test URI
                       </button>
                     </div>
-                    <p className="mt-1.5 text-xs text-white/25">
+                    <p className="mt-1.5 text-xs text-stone">
                       Upload your dataset to S3 or IPFS first, then paste the
                       URI here.
                     </p>
@@ -632,21 +618,21 @@ export default function SubmitJobPage(): React.ReactElement {
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Container image, model checkpoints, expected output path, hyperparameters, or verifier instructions."
                       rows={3}
-                      className="w-full resize-none rounded-2xl border border-white/10 bg-black/45 px-5 py-4 text-sm leading-relaxed text-white outline-none transition-all placeholder:text-white/25 focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                      className="w-full resize-none rounded-none border border-hairline bg-canvas px-5 py-4 text-sm leading-relaxed text-ink outline-none transition-all placeholder:text-stone focus:border-ink focus:ring-2 focus:ring-brand-cyan/20"
                     />
                   </div>
                 </div>
               </section>
 
               {/* Requirements */}
-              <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 shadow-2xl backdrop-blur-xl md:p-8">
+              <section className="border border-hairline bg-canvas p-6 md:p-8">
                 <div className="mb-6 flex items-center gap-3">
-                  <Cpu className="h-5 w-5 text-brand-cyan" />
+                  <Cpu className="h-5 w-5 text-ink" />
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-white/35">
+                    <p className="text-xs font-bold uppercase tracking-widest text-stone">
                       Step 3
                     </p>
-                    <h2 className="mt-0.5 text-2xl font-bold text-white">
+                    <h2 className="mt-0.5 text-2xl font-bold text-ink">
                       Requirements
                     </h2>
                   </div>
@@ -659,7 +645,7 @@ export default function SubmitJobPage(): React.ReactElement {
                       Budget
                     </FieldLabel>
                     <div className="relative">
-                      <Coins className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-white/30" />
+                      <Coins className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-stone" />
                       <input
                         type="number"
                         value={budget}
@@ -667,11 +653,11 @@ export default function SubmitJobPage(): React.ReactElement {
                         placeholder="0.500"
                         min="0.001"
                         step="0.001"
-                        className="h-14 w-full rounded-2xl border border-white/10 bg-black/45 pl-14 pr-5 text-base text-white outline-none transition-all placeholder:text-white/25 focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                        className="h-14 w-full rounded-none border border-hairline bg-canvas pl-14 pr-5 text-base text-ink outline-none transition-all placeholder:text-stone focus:border-ink focus:ring-2 focus:ring-brand-cyan/20"
                       />
                     </div>
                     {validBudget && (
-                      <p className="mt-1.5 text-xs text-white/30">
+                      <p className="mt-1.5 text-xs text-stone">
                         ≈ {estHours.toFixed(1)} hrs at {typeDef.ratePerHour}{" "}
                         SOL/hr
                       </p>
@@ -684,13 +670,13 @@ export default function SubmitJobPage(): React.ReactElement {
                       Estimated Duration
                     </FieldLabel>
                     <div className="relative">
-                      <Clock className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-white/30" />
+                      <Clock className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-stone" />
                       <select
                         value={duration}
                         onChange={(e) =>
                           setDuration(e.target.value as DurationValue)
                         }
-                        className="h-14 w-full appearance-none rounded-2xl border border-white/10 bg-black/45 pl-14 pr-10 text-base text-white outline-none transition-all focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                        className="h-14 w-full appearance-none rounded-none border border-hairline bg-canvas pl-14 pr-10 text-base text-ink outline-none transition-all focus:border-ink focus:ring-2 focus:ring-brand-cyan/20"
                       >
                         {DURATION_OPTIONS.map(({ value, label }) => (
                           <option
@@ -709,14 +695,14 @@ export default function SubmitJobPage(): React.ReactElement {
                   <div>
                     <FieldLabel hint="GB">Minimum VRAM</FieldLabel>
                     <div className="relative">
-                      <Cpu className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-white/30" />
+                      <Cpu className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-stone" />
                       <input
                         type="number"
                         value={requiredVram}
                         onChange={(e) => setRequiredVram(e.target.value)}
                         min="0"
                         max="160"
-                        className="h-14 w-full rounded-2xl border border-white/10 bg-black/45 pl-14 pr-5 text-base text-white outline-none transition-all placeholder:text-white/25 focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                        className="h-14 w-full rounded-none border border-hairline bg-canvas pl-14 pr-5 text-base text-ink outline-none transition-all placeholder:text-stone focus:border-ink focus:ring-2 focus:ring-brand-cyan/20"
                       />
                     </div>
                   </div>
@@ -730,10 +716,10 @@ export default function SubmitJobPage(): React.ReactElement {
                           key={p}
                           type="button"
                           onClick={() => setPriority(p)}
-                          className={`h-14 rounded-2xl border text-sm font-bold transition-all ${
+                          className={`h-14 rounded-none border text-sm font-bold transition-all ${
                             priority === p
-                              ? "border-brand-cyan bg-brand-cyan/10 text-brand-cyan"
-                              : "border-white/10 bg-black/30 text-white/45 hover:border-white/25 hover:text-white"
+                              ? "border-ink bg-surface-cool text-ink"
+                              : "border-hairline bg-canvas text-graphite hover:border-hairline hover:text-ink"
                           }`}
                         >
                           {p === "standard" ? "Standard" : "Rush"}
@@ -752,10 +738,10 @@ export default function SubmitJobPage(): React.ReactElement {
                         key={tier}
                         type="button"
                         onClick={() => setGpuTier(tier)}
-                        className={`rounded-2xl border px-3 py-4 text-center transition-all ${
+                        className={`rounded-none border px-3 py-4 text-center transition-all ${
                           gpuTier === tier
-                            ? "border-brand-cyan bg-brand-cyan/10 text-brand-cyan"
-                            : "border-white/10 bg-black/30 text-white/45 hover:border-white/25 hover:text-white"
+                            ? "border-ink bg-surface-cool text-ink"
+                            : "border-hairline bg-canvas text-graphite hover:border-hairline hover:text-ink"
                         }`}
                       >
                         <span className="block text-sm font-bold">
@@ -772,21 +758,21 @@ export default function SubmitJobPage(): React.ReactElement {
             </div>
 
             {/* Sidebar */}
-            <aside className="lg:sticky lg:top-28">
-              <div className="rounded-3xl border border-brand-cyan/20 bg-brand-gray/70 p-6 shadow-[0_0_60px_rgba(0,255,209,0.08)] backdrop-blur-2xl">
+            <aside className="lg:sticky lg:top-24">
+              <div className="border border-hairline bg-canvas p-6">
                 <div className="mb-5">
-                  <p className="text-xs font-bold uppercase tracking-widest text-brand-cyan">
+                  <p className="text-xs font-bold uppercase tracking-widest text-ink">
                     Deployment Quote
                   </p>
                   <div className="mt-2 flex items-center gap-3">
-                    <typeDef.icon className="h-7 w-7 text-brand-cyan" />
-                    <h2 className="text-xl font-bold text-white">
+                    <typeDef.icon className="h-7 w-7 text-ink" />
+                    <h2 className="text-xl font-bold text-ink">
                       {typeDef.label}
                     </h2>
                   </div>
                 </div>
 
-                <div className="space-y-3.5 border-y border-white/10 py-5">
+                <div className="space-y-3.5 border-y border-hairline py-5">
                   {(
                     [
                       [
@@ -817,22 +803,22 @@ export default function SubmitJobPage(): React.ReactElement {
                       key={label}
                       className="flex items-center justify-between gap-4"
                     >
-                      <span className="text-sm text-white/45">{label}</span>
-                      <span className="max-w-[160px] truncate text-right text-sm font-semibold text-white">
+                      <span className="text-sm text-graphite">{label}</span>
+                      <span className="max-w-[160px] truncate text-right text-sm font-semibold text-ink">
                         {value}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-5 rounded-2xl border border-brand-cyan/20 bg-brand-cyan/5 p-4">
+                <div className="mt-5 border border-hairline bg-surface-cool p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-brand-cyan" />
-                    <p className="text-sm font-bold text-brand-cyan">
+                    <ShieldCheck className="h-4 w-4 text-ink" />
+                    <p className="text-sm font-bold text-ink">
                       On-Chain Escrow
                     </p>
                   </div>
-                  <p className="text-sm leading-relaxed text-brand-cyan/70">
+                  <p className="text-sm leading-relaxed text-ink/70">
                     Funds will be locked in a Solana smart contract. The
                     provider is only paid after verifiable completion.
                   </p>
@@ -843,9 +829,9 @@ export default function SubmitJobPage(): React.ReactElement {
                     {readiness.map((item) => (
                       <div
                         key={item}
-                        className="flex items-center gap-2 text-sm text-white/60"
+                        className="flex items-center gap-2 text-sm text-graphite"
                       >
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-brand-cyan" />
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-ink" />
                         {item}
                       </div>
                     ))}
@@ -853,14 +839,14 @@ export default function SubmitJobPage(): React.ReactElement {
                 )}
 
                 {error && (
-                  <div className="mt-5 flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm leading-relaxed text-red-300">
+                  <div className="mt-5 flex items-start gap-3 rounded-none border border-red-500/20 bg-red-500/10 p-4 text-sm leading-relaxed text-red-300">
                     <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                     {error}
                   </div>
                 )}
 
                 {!connected && (
-                  <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+                  <div className="mt-4 rounded-none border border-amber-500/20 bg-amber-500/5 p-4">
                     <div className="flex items-center gap-3">
                       <AlertCircle className="h-5 w-5 text-amber-400 shrink-0" />
                       <div>
@@ -883,7 +869,7 @@ export default function SubmitJobPage(): React.ReactElement {
                   balance !== null &&
                   balance < budgetNum &&
                   budgetNum > 0 && (
-                    <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">
+                    <div className="mt-4 rounded-none border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">
                       ✗ Insufficient balance. You have {balance.toFixed(3)} SOL,
                       but this job requires {budgetNum.toFixed(3)} SOL.
                     </div>
@@ -896,7 +882,7 @@ export default function SubmitJobPage(): React.ReactElement {
                     !connected ||
                     (balance !== null && balance < budgetNum)
                   }
-                  className="mt-6 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-brand-cyan text-base font-bold text-brand-dark shadow-[0_0_35px_rgba(0,255,209,0.18)] transition-all hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-6 flex h-14 w-full items-center justify-center gap-3 rounded-none bg-primary text-on-primary text-base font-bold transition-all hover:bg-surface-cool hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {submitting ? (
                     <>
@@ -913,8 +899,6 @@ export default function SubmitJobPage(): React.ReactElement {
               </div>
             </aside>
           </form>
-        </motion.div>
-      </div>
-    </div>
+    </PageContainer>
   );
 }

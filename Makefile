@@ -8,6 +8,7 @@ COLOR_CYAN := \033[36m
 COLOR_GREEN := \033[32m
 COLOR_YELLOW := \033[33m
 COLOR_RED := \033[31m
+COLOR_MAGENTA := \033[35m
 
 .DEFAULT_GOAL := help
 
@@ -88,3 +89,34 @@ db-generate:
 db-reset:
 	@printf "$(COLOR_YELLOW)Resetting database via seed script...$(COLOR_RESET)\n"
 	$(PNPM) --filter @repo/db seed:reset
+
+.PHONY: create-map
+create-map: ## Generate repo-context.txt for LLM (requires aider)
+	@printf "$(COLOR_CYAN)  Generating repo context map...$(COLOR_RESET)\n"
+	@aider --show-repo-map . > full-context.txt
+	@printf "$(COLOR_GREEN)  ✔ Context map generated → full-context.txt$(COLOR_RESET)\n"
+	@printf "$(COLOR_YELLOW)  ℹ Use with: aider --llm-context full-context.txt .$(COLOR_RESET)\n"
+
+.PHONY: llm-help
+llm-help: ## Show LLM workflow instructions
+	@echo ""
+	@printf "$(COLOR_BOLD)$(COLOR_MAGENTA)  LLM Context & AI Workflows$(COLOR_RESET)\n"
+	@echo ""
+	@printf "$(COLOR_BOLD)  1. Generate Context Map:$(COLOR_RESET)\n"
+	@printf "     make create-map\n"
+	@echo ""
+	@printf "$(COLOR_BOLD)  2. Use with Aider:$(COLOR_RESET)\n"
+	@printf "     aider --llm-context full-context.txt .\n"
+	@echo ""
+	@printf "$(COLOR_BOLD)  3. Share Context with LLMs:$(COLOR_RESET)\n"
+	@printf "     Attach full-context.txt to your LLM prompt/chat\n"
+	@echo ""
+	@printf "$(COLOR_BOLD)  4. Example Prompt:$(COLOR_RESET)\n"
+	@printf "     \"Using full-context.txt, add a 'triangle' drawing tool.\"\n"
+	@echo ""
+	@printf "$(COLOR_YELLOW)  ℹ full-context.txt contains:\n"
+	@printf "     - Project structure & tech stack\n"
+	@printf "     - Key data flows & patterns\n"
+	@printf "     - Common tasks & file locations\n"
+	@printf "     - Security & configuration guidelines$(COLOR_RESET)\n"
+	@echo ""

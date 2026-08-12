@@ -6,11 +6,14 @@ import dynamic from "next/dynamic";
 const Globe = dynamic(() => import("react-globe.gl"), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center w-full h-full text-brand-cyan/50 font-mono text-sm animate-pulse">
+    <div className="flex items-center justify-center w-full h-full text-ink/50 font-mono text-sm animate-pulse">
       Initializing Global Network...
     </div>
   ),
 });
+
+const GEOJSON_URL =
+  "https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson";
 
 export function EarthGlobe() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,11 +22,9 @@ export function EarthGlobe() {
   const [dimensions, setDimensions] = useState({ width: 1600, height: 1600 });
   const [countries, setCountries] = useState({ features: [] });
 
-  // Fetch the Geographic Earth Map
+  // Fetch the Geographic Earth Map (cached by browser for 24h)
   useEffect(() => {
-    fetch(
-      "https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson",
-    )
+    fetch(GEOJSON_URL, { cache: "force-cache" })
       .then((res) => res.json())
       .then((data) => setCountries(data));
   }, []);
@@ -288,9 +289,9 @@ export function EarthGlobe() {
   return (
     <div
       ref={containerRef}
-      className="w-full max-w-[850px] aspect-square mx-auto relative flex items-center justify-center animate-mask-up-blur [animation-delay:2000ms] cursor-grab active:cursor-grabbing"
+      className="w-full max-w-[850px] aspect-square mx-auto relative flex items-center justify-center cursor-grab active:cursor-grabbing"
     >
-      <div className="absolute inset-0 z-10 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,transparent_55%,var(--color-brand-dark)_85%)]" />
+      <div className="absolute inset-0 z-10 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,transparent_55%,var(--color-canvas)_85%)]" />
 
       {/* The 3D Engine */}
       <Globe

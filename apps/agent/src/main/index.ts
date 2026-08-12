@@ -11,6 +11,9 @@ import { connectWebSocket, disconnectWebSocket } from "./ws-client";
 import { setupTray } from "./tray";
 import { generateAgentKeypair } from "@repo/crypto";
 import { agentRequest } from "./api-client";
+import pino from "pino";
+
+const logger = pino();
 
 if (process.platform === "linux") {
   app.commandLine.appendSwitch("no-sandbox");
@@ -114,7 +117,7 @@ app.whenReady().then(() => {
     const { privateKey, publicKey } = generateAgentKeypair();
     store.set("agentPrivateKey", privateKey);
     store.set("agentPublicKey", publicKey);
-    console.log("[Agent] Keypair generated");
+    logger.info("[Agent] Keypair generated");
   }
 
   // Resume session if already registered
@@ -138,13 +141,13 @@ app.on("window-all-closed", () => {
 ipcMain.handle("auth:login", async (_, { email, password }) => {
   try {
     const url = `${store.get("apiUrl")}/auth/login`;
-    console.log("[Login] Hitting URL:", url);
+    logger.info("[Login] Hitting URL:", url);
 
     const { data } = await axios.post(url, {
       email,
       password,
     });
-    console.log("[Login] Response:", data);
+    logger.info("[Login] Response:", data);
     store.set("token", data.token);
     store.set("userId", data.userId);
 
@@ -171,7 +174,10 @@ ipcMain.handle("auth:login", async (_, { email, password }) => {
 
     return { success: true, user: data.user, provider };
   } catch (err: any) {
-    console.log("[Login] Error:", err.response?.status, err.response?.data);
+    logger.error(
+      { status: err.response?.status, data: err.response?.data },
+      "[Login] Error",
+    );
     return {
       success: false,
       error: err.response?.data?.error ?? "Login failed",
@@ -276,7 +282,7 @@ ipcMain.handle(
     try {
       const token = store.get("token");
       const url = `${store.get("apiUrl")}/providers/register`;
-      console.log("[MACHINE] Hitting URL:", url);
+      logger.info("[MACHINE] Hitting URL:", url);
       const { data } = await axios.post(
         url,
         {
@@ -288,7 +294,7 @@ ipcMain.handle(
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      console.log("[MACHINE] Response:", data);
+      logger.info("[MACHINE] Response:", data);
       store.set("providerId", data.providerId);
       store.set("machineRegistered", true);
       await ensureAgentConnected(data.providerId);

@@ -1,4 +1,5 @@
 import { Queue } from "bullmq";
+import { logger } from "../lib/logger.js";
 import { makeRedisConnection } from "../lib/redis.js";
 
 export const QUEUE_NAME = "job-matching";
@@ -9,7 +10,7 @@ export interface JobMatchPayload {
 
 export const jobQueue = new Queue<JobMatchPayload>(QUEUE_NAME, {
   connection: makeRedisConnection(),
-  prefix: "zan",// Redis keys: gnet:bull:job-matching:*
+  prefix: "zan", // Redis keys: gnet:bull:job-matching:*
   defaultJobOptions: {
     attempts: 15,
     backoff: { type: "exponential", delay: 10_000 },
@@ -25,5 +26,5 @@ export const jobQueue = new Queue<JobMatchPayload>(QUEUE_NAME, {
  */
 export async function enqueueJob(jobId: string): Promise<void> {
   await jobQueue.add("match", { jobId }, { jobId });
-  console.log(`[Queue] Enqueued job ${jobId}`);
+  logger.info(`[Queue] Enqueued job ${jobId}`);
 }

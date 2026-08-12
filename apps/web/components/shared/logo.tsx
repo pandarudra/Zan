@@ -4,13 +4,9 @@ import type { ReactElement } from "react";
 
 export function Logo(): ReactElement {
   return (
-    <Link href="/" className="flex items-center gap-3 group">
-      <div className="relative flex items-center justify-center size-4">
-        <div className="absolute inset-0 rounded-full bg-brand-cyan animate-pulse-glow" />
-        <div className="relative size-2 rounded-full bg-white" />
-      </div>
-      <span className="font-mono text-xl font-bold tracking-tight text-white group-hover:text-brand-cyan transition-colors">
-        {siteConfig.name}
+    <Link href="/" className="flex items-center group">
+      <span className="font-sans text-[20px] font-[600] tracking-tight text-ink lowercase group-hover:text-ink-soft transition-colors">
+        {siteConfig.name}.
       </span>
     </Link>
   );

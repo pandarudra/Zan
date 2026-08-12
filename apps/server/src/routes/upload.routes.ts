@@ -4,6 +4,7 @@ import { verifyJWT } from "../middlewares/verifyJWT.js";
 import { uploadToAzure, generateReadSASUrl, CONTAINERS } from "../lib/azure.js";
 import * as path from "path";
 import * as crypto from "crypto";
+import { logger } from "../lib/logger.js";
 
 const router: Router = Router();
 
@@ -50,7 +51,7 @@ router.post("/", verifyJWT, upload.single("file"), async (req, res) => {
     );
     const downloadUrl = await generateReadSASUrl(CONTAINERS.inputs, key);
 
-    console.log(`[Upload] ${req.file.originalname} → ${uri}`);
+    logger.info(`[Upload] ${req.file.originalname} → ${uri}`);
 
     res.json({
       success: true,
@@ -62,8 +63,10 @@ router.post("/", verifyJWT, upload.single("file"), async (req, res) => {
       mimeType: req.file.mimetype,
     });
   } catch (err: any) {
-    console.error("[Upload] Error:", err);
-    res.status(500).json({ error: "Upload failed: " + (err?.message || "Unknown error") });
+    logger.error({ err }, "[Upload] Error");
+    res
+      .status(500)
+      .json({ error: "Upload failed: " + (err?.message || "Unknown error") });
   }
 });
 

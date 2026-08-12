@@ -7,8 +7,9 @@ import {
 import type { Readable } from "stream";
 
 const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+import { logger } from "./logger.js";
 if (!connectionString) {
-  console.warn("[Azure] AZURE_STORAGE_CONNECTION_STRING is not set.");
+  logger.warn("[Azure] AZURE_STORAGE_CONNECTION_STRING is not set.");
 }
 
 export const blobServiceClient = connectionString
@@ -27,7 +28,7 @@ export async function uploadToAzure(
   containerName: string,
   blobName: string,
   body: Buffer | Readable,
-  contentType: string
+  contentType: string,
 ): Promise<string> {
   if (!blobServiceClient) {
     throw new Error("[Azure] BlobServiceClient is not initialized.");
@@ -57,10 +58,12 @@ export async function uploadToAzure(
 export async function generateReadSASUrl(
   containerName: string,
   blobName: string,
-  expiresInSeconds = 3600
+  expiresInSeconds = 3600,
 ): Promise<string> {
   if (!blobServiceClient || !connectionString) {
-    throw new Error("[Azure] BlobServiceClient or connection string is not initialized.");
+    throw new Error(
+      "[Azure] BlobServiceClient or connection string is not initialized.",
+    );
   }
 
   const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -69,22 +72,29 @@ export async function generateReadSASUrl(
   // Extract account name and key to sign the SAS using StorageSharedKeyCredential
   // We can't use generateBlobSASQueryParameters with just a BlobServiceClient initialized via connection string
   // if we don't have the explicit credential, unless we extract it.
-  
-  // Actually, we can use `blobClient.generateSasUrl` directly if it's available, 
+
+  // Actually, we can use `blobClient.generateSasUrl` directly if it's available,
   // but it's simpler to just parse the connection string if we are using StorageSharedKeyCredential
   // Wait, BlobServiceClient created from connection string can generate SAS directly?
   // Let's check the API: blobClient.url + "?" + generateBlobSASQueryParameters(...) requires credential.
-  
+
   const accountNameMatch = connectionString.match(/AccountName=([^;]+)/);
   const accountKeyMatch = connectionString.match(/AccountKey=([^;]+)/);
-  
-  if (!accountNameMatch || !accountKeyMatch || !accountNameMatch[1] || !accountKeyMatch[1]) {
-    throw new Error("Could not parse AccountName or AccountKey from connection string.");
+
+  if (
+    !accountNameMatch ||
+    !accountKeyMatch ||
+    !accountNameMatch[1] ||
+    !accountKeyMatch[1]
+  ) {
+    throw new Error(
+      "Could not parse AccountName or AccountKey from connection string.",
+    );
   }
 
   const sharedKeyCredential = new StorageSharedKeyCredential(
     accountNameMatch[1],
-    accountKeyMatch[1]
+    accountKeyMatch[1],
   );
 
   const expiresOn = new Date();
@@ -98,13 +108,16 @@ export async function generateReadSASUrl(
     expiresOn,
   };
 
-  const sasToken = generateBlobSASQueryParameters(sasOptions, sharedKeyCredential).toString();
+  const sasToken = generateBlobSASQueryParameters(
+    sasOptions,
+    sharedKeyCredential,
+  ).toString();
   return `${blobClient.url}?${sasToken}`;
 }
 
 export async function blobExists(
   containerName: string,
-  blobName: string
+  blobName: string,
 ): Promise<boolean> {
   if (!blobServiceClient) return false;
   try {

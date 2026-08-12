@@ -4,17 +4,8 @@ import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  Mail,
-  Lock,
-  User,
-  Loader2,
-  ArrowRight,
-  Eye,
-  EyeOff,
-  Cpu,
-} from "lucide-react";
+import { Mail, Lock, User, Loader2, ArrowRight, Eye, EyeOff, Cpu } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type SignupRole = "CLIENT" | "PROVIDER";
 
@@ -65,36 +56,27 @@ export default function RegisterPage(): React.JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-brand-dark flex items-center justify-center relative overflow-hidden px-6 pt-20">
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-brand-cyan/10 blur-[150px] rounded-full pointer-events-none" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md relative z-10"
-      >
-        <div className="rounded-3xl border border-white/10 bg-brand-gray/50 backdrop-blur-2xl p-10 shadow-2xl relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-brand-cyan to-transparent opacity-50" />
-
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
+    <div className="min-h-screen bg-canvas flex items-center justify-center relative px-[24px] pt-[80px]">
+      <div className="w-full max-w-[440px] relative z-10">
+        <div className="rounded-[16px] border border-hairline bg-surface-cool p-[40px] shadow-sm relative overflow-hidden">
+          
+          <div className="text-center mb-[40px]">
+            <h1 className="text-[32px] font-[400] tracking-[-0.8px] text-ink mb-[8px]">
               Create Account
             </h1>
-            <p className="text-white/50 font-light">
+            <p className="text-[16px] text-graphite font-[400]">
               Join the decentralized compute network.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6 mb-8">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-[24px] mb-[32px]">
             {error && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+              <div className="p-[12px] rounded-[8px] bg-red-500/10 border border-red-500/20 text-red-400 text-[14px] text-center">
                 {error}
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-[12px]">
               {[
                 {
                   value: "CLIENT" as const,
@@ -113,14 +95,14 @@ export default function RegisterPage(): React.JSX.Element {
                     key={value}
                     type="button"
                     onClick={() => setRole(value)}
-                    className={`flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition-all ${
+                    className={`flex items-center justify-center gap-[8px] rounded-[12px] border py-[12px] text-[14px] font-[600] transition-all ${
                       isSelected
-                        ? "border-brand-cyan bg-brand-cyan/10 text-brand-cyan"
-                        : "border-white/10 bg-black/30 text-white/50 hover:border-white/20 hover:text-white"
+                        ? "border-ink bg-ink text-canvas"
+                        : "border-hairline bg-canvas text-graphite hover:border-ink hover:text-ink"
                     }`}
                     aria-pressed={isSelected}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-[16px] h-[16px]" />
                     {label}
                   </button>
                 );
@@ -128,74 +110,74 @@ export default function RegisterPage(): React.JSX.Element {
             </div>
 
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+              <User className="absolute left-[16px] top-1/2 -translate-y-1/2 w-[20px] h-[20px] text-graphite" />
               <input
                 name="name"
                 type="text"
                 required
                 placeholder="Full Name"
-                className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all"
+                className="w-full bg-canvas border border-hairline rounded-[12px] py-[16px] pl-[48px] pr-[16px] text-ink placeholder:text-stone focus:outline-none focus:border-ink transition-all text-[16px]"
               />
             </div>
 
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+              <Mail className="absolute left-[16px] top-1/2 -translate-y-1/2 w-[20px] h-[20px] text-graphite" />
               <input
                 name="email"
                 type="email"
                 required
                 placeholder="name@example.com"
-                className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all"
+                className="w-full bg-canvas border border-hairline rounded-[12px] py-[16px] pl-[48px] pr-[16px] text-ink placeholder:text-stone focus:outline-none focus:border-ink transition-all text-[16px]"
               />
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+              <Lock className="absolute left-[16px] top-1/2 -translate-y-1/2 w-[20px] h-[20px] text-graphite" />
               <input
                 name="password"
                 type={showPassword ? "text" : "password"}
                 required
                 placeholder="Create a password"
                 minLength={6}
-                className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-white placeholder:text-white/20 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all"
+                className="w-full bg-canvas border border-hairline rounded-[12px] py-[16px] pl-[48px] pr-[48px] text-ink placeholder:text-stone focus:outline-none focus:border-ink transition-all text-[16px]"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50 transition-colors"
+                className="absolute right-[16px] top-1/2 -translate-y-1/2 text-graphite hover:text-ink transition-colors"
               >
                 {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
+                  <EyeOff className="w-[20px] h-[20px]" />
                 ) : (
-                  <Eye className="w-5 h-5" />
+                  <Eye className="w-[20px] h-[20px]" />
                 )}
               </button>
             </div>
 
-            <button
+            <Button
               disabled={loading}
               type="submit"
-              className="group relative w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-all disabled:opacity-70 overflow-hidden"
+              variant="primary"
+              className="w-full mt-[8px] rounded-[12px] py-[24px] text-[16px]"
             >
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-[20px] h-[20px] animate-spin" />
               ) : (
                 <>
-                  Create Account{" "}
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  Create Account <ArrowRight className="w-[16px] h-[16px] ml-[8px]" />
                 </>
               )}
-            </button>
+            </Button>
           </form>
 
-          <p className="text-center text-white/40 text-sm">
+          <p className="text-center text-graphite text-[14px]">
             Already have an account?{" "}
-            <Link href="/login" className="text-brand-cyan hover:underline">
+            <Link href="/login" className="text-ink font-[600] hover:underline">
               Sign in
             </Link>
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

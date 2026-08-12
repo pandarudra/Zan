@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@repo/db";
 import bcrypt from "bcryptjs";
+const logger = console;
 
 export async function POST(req: Request): Promise<NextResponse> {
   try {
@@ -41,7 +42,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Registration Error:", error);
+    logger.error("Registration Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

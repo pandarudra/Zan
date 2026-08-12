@@ -2,6 +2,9 @@ import WebSocket from "ws";
 import { store } from "./store";
 import { BrowserWindow } from "electron";
 import { cancelRunningJob, runJob, type JobPayload } from "./job-runner";
+import pino from "pino";
+
+const logger = pino();
 
 let ws: WebSocket | null = null;
 let reconnectTimer: NodeJS.Timeout | null = null;
@@ -20,7 +23,7 @@ export function connectWebSocket(win: BrowserWindow | null) {
   ws = new WebSocket(`${wsUrl}/ws?providerId=${providerId}`);
 
   ws.on("open", () => {
-    console.log("[WS] Connected");
+    logger.info("[WS] Connected");
     mainWin?.webContents.send("ws-status", "connected");
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
@@ -47,10 +50,12 @@ export function connectWebSocket(win: BrowserWindow | null) {
           })
             .then(() => {
               store.set("currentJobId", null);
-              mainWin?.webContents.send("job-finished", { jobId: jobPayload.jobId });
+              mainWin?.webContents.send("job-finished", {
+                jobId: jobPayload.jobId,
+              });
             })
             .catch((err) => {
-              console.error("[WS] Job runner crashed:", err.message);
+              logger.error({ err: err.message }, "[WS] Job runner crashed");
               store.set("currentJobId", null);
               mainWin?.webContents.send("job-error", {
                 jobId: jobPayload.jobId,
@@ -62,7 +67,9 @@ export function connectWebSocket(win: BrowserWindow | null) {
 
         case "JOB_CANCELLED": {
           const currentJobId = store.get("currentJobId");
-          const cancelledJobId = String(msg.payload?.jobId ?? currentJobId ?? "");
+          const cancelledJobId = String(
+            msg.payload?.jobId ?? currentJobId ?? "",
+          );
           if (cancelledJobId) {
             void cancelRunningJob(cancelledJobId);
           }
@@ -76,7 +83,7 @@ export function connectWebSocket(win: BrowserWindow | null) {
           break;
 
         default:
-          console.warn("[WS] Unknown message type:", msg.type);
+          logger.warn("[WS] Unknown message type:", msg.type);
       }
     } catch {
       // Ignore malformed messages
@@ -84,13 +91,13 @@ export function connectWebSocket(win: BrowserWindow | null) {
   });
 
   ws.on("close", () => {
-    console.log("[WS] Disconnected — reconnecting in 5s");
+    logger.info("[WS] Disconnected — reconnecting in 5s");
     mainWin?.webContents.send("ws-status", "disconnected");
     reconnectTimer = setTimeout(() => connectWebSocket(mainWin), 5000);
   });
 
   ws.on("error", (err) => {
-    console.error("[WS] Error:", err.message);
+    logger.error({ err: err.message }, "[WS] Error");
     ws?.terminate();
   });
 }

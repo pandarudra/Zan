@@ -1,29 +1,34 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Escrow } from "./target/types/escrow";
+import pino from "pino";
+const logger = pino();
 
 async function main() {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
   const provider = anchor.getProvider() as anchor.AnchorProvider;
-  
+
   // This reads the IDL and program ID from your workspace
   const program = anchor.workspace.Escrow as Program<Escrow>;
 
-  console.log("Using wallet:", provider.wallet.publicKey.toBase58());
-  console.log("Program ID:", program.programId.toBase58());
+  logger.info("Using wallet:", provider.wallet.publicKey.toBase58());
+  logger.info("Program ID:", program.programId.toBase58());
 
   const [configPda] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("config")],
-    program.programId
+    program.programId,
   );
   const [platformTreasuryPda] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("platform_treasury")],
-    program.programId
+    program.programId,
   );
 
-  console.log("Initializing config at PDA:", configPda.toBase58());
-  console.log("Initializing platform treasury at PDA:", platformTreasuryPda.toBase58());
+  logger.info("Initializing config at PDA:", configPda.toBase58());
+  logger.info(
+    "Initializing platform treasury at PDA:",
+    platformTreasuryPda.toBase58(),
+  );
 
   const initializeTreasury = async () => {
     const tx = await program.methods
@@ -35,7 +40,7 @@ async function main() {
         systemProgram: anchor.web3.SystemProgram.programId,
       } as any)
       .rpc();
-    console.log("Platform treasury initialized! Transaction signature:", tx);
+    logger.info("Platform treasury initialized! Transaction signature:", tx);
   };
 
   try {
@@ -43,7 +48,7 @@ async function main() {
       .initializeConfig(
         provider.wallet.publicKey, // authority
         1000, // 10% platform fee
-        new anchor.BN(2 * anchor.web3.LAMPORTS_PER_SOL) // 2 SOL max deposit
+        new anchor.BN(2 * anchor.web3.LAMPORTS_PER_SOL), // 2 SOL max deposit
       )
       .accounts({
         authority: provider.wallet.publicKey,
@@ -53,19 +58,21 @@ async function main() {
       } as any)
       .rpc();
 
-    console.log("Config initialized! Transaction signature:", tx);
+    logger.info("Config initialized! Transaction signature:", tx);
     await initializeTreasury();
   } catch (err: any) {
     if (err.message.includes("already in use")) {
-      console.log("Config is already initialized! You are good to go.");
+      logger.info("Config is already initialized! You are good to go.");
       await initializeTreasury();
     } else {
-      console.error("Error initializing config:", err);
+      logger.error("Error initializing config:", err);
     }
   }
 }
 
-main().then(() => process.exit(0)).catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    logger.error(err);
+    process.exit(1);
+  });

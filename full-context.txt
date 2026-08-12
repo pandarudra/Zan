@@ -1,0 +1,1165 @@
+──────────────────────────────────────────────────────────────────────────
+Using gpt-4o model with API key from environment.
+Aider v0.86.2
+Main model: gpt-4o with diff edit format
+Weak model: gpt-4o-mini
+Git repo: .git with 239 files
+Repo-map: using 4096 tokens, auto refresh
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/app/page.module.css
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/components/shared/smooth-scroll.tsx
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/constants/config.ts
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/constants/contracts.ts
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/constants/routes.ts
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/hooks/use-media-query.ts
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/hooks/use-scroll.ts
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/public/file-text.svg
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/public/next.svg
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/public/turborepo-dark.svg
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/public/turborepo-light.svg
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/public/vercel.svg
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/public/window.svg
+Has it been deleted from the file system but not from git?
+Repo-map can't include 
+/home/rudra/Desktop/final/Zan/apps/web/store/useUserStore.ts
+Has it been deleted from the file system but not from git?
+Here are summaries of some files present in my git repository.
+Do not propose changes to these files, treat them as *read-only*.
+If you need to edit any of these files, ask me to *add them to the chat* 
+first.
+
+apps/agent/src/main/api-client.ts:
+⋮
+│export async function agentRequest(
+│  method: "get" | "post" | "patch",
+│  path: string,
+│  body?: any,
+⋮
+
+apps/agent/src/main/detect.ts:
+⋮
+│export interface DetectionStep {
+│  label: string;
+│  status: "pending" | "running" | "done" | "error" | "warn";
+│  value?: string;
+│  error?: string;
+⋮
+│export async function getGpuMetrics() {
+│  // NVIDIA
+│  try {
+│    const { stdout } = await execAsync(
+│      `nvidia-smi 
+--query-gpu=utilization.gpu,memory.used,temperature.gpu,power.draw 
+--format=csv,n
+│    );
+│    const [util, vram, temp, power] = stdout
+│      .trim()
+│      .split(",")
+│      .map((s) => parseFloat(s.trim()));
+⋮
+
+apps/agent/src/main/heartbeat.ts:
+⋮
+│export class HeartbeatService {
+│  private interval: NodeJS.Timeout | null = null;
+│  private readonly INTERVAL_MS = 30_000;
+│
+│  start() {
+│    if (this.interval) return; // already running
+│    this.ping();
+│    this.interval = setInterval(() => this.ping(), this.INTERVAL_MS);
+│    logger.info("[Heartbeat] Started");
+│  }
+│
+⋮
+│  isRunning() {
+│    return this.interval !== null;
+⋮
+
+apps/agent/src/main/job-runner.ts:
+⋮
+│export interface JobPayload {
+│  jobId: string;
+│  title: string;
+│  type: string;
+│  dockerImage: string;
+│  inputUri: string;
+│  jobParams: Record<string, any>;
+│  timeLimitSecs: number;
+│  budget: number;
+⋮
+│interface ExecutionMetadata {
+│  executionTimeMs: number;
+│  vramUsedMb: number;
+│  avgUtilization: number;
+│  peakUtilization: number;
+│  tempDeltaC: number;
+│  powerDrawW: number;
+│  exitCode: number;
+│  logsUri: string;
+│  outputFiles: { filename: string; uri: string; size: number }[];
+⋮
+
+apps/agent/src/main/storage.ts:
+⋮
+│export function loadDotEnv(): void {
+│  const candidates = [
+│    path.resolve(__dirname, "../../.env"),
+│    path.resolve(process.cwd(), "apps/agent/.env"),
+│    path.resolve(process.cwd(), ".env"),
+│  ];
+│
+│  for (const envPath of candidates) {
+│    if (!fs.existsSync(envPath)) continue;
+│    const contents = fs.readFileSync(envPath, "utf8");
+│
+⋮
+│async function ensureContainer(): Promise<void> {
+│  if (!blobServiceClient) {
+│    throw new Error("[Azure] AZURE_STORAGE_CONNECTION_STRING is not 
+set.");
+│  }
+│
+│  const containerClient =
+│    blobServiceClient.getContainerClient(OUTPUT_CONTAINER);
+│  const result = await containerClient.createIfNotExists();
+│  if (result.succeeded) {
+│    logger.info(`[Storage] Created Azure container: 
+${OUTPUT_CONTAINER}`);
+⋮
+│export async function uploadOutputDirectory(
+│  jobId: string,
+│  outputDir: string,
+⋮
+│export async function uploadLogs(jobId: string, logs: string): 
+Promise<string> {
+│  await ensureContainer();
+│  if (!blobServiceClient) {
+│    throw new Error("[Azure] AZURE_STORAGE_CONNECTION_STRING is not 
+set.");
+│  }
+│
+│  const containerClient =
+│    blobServiceClient.getContainerClient(OUTPUT_CONTAINER);
+│  const key = `${jobId}/execution.log`;
+│  const blobClient = containerClient.getBlockBlobClient(key);
+⋮
+│function guessContentType(filename: string): string {
+│  if (filename.endsWith(".json")) return "application/json";
+│  if (filename.endsWith(".txt")) return "text/plain";
+│  if (filename.endsWith(".log")) return "text/plain";
+│  if (filename.endsWith(".csv")) return "text/csv";
+│  if (filename.endsWith(".png")) return "image/png";
+│  if (filename.endsWith(".jpg")) return "image/jpeg";
+│  if (filename.endsWith(".jpeg")) return "image/jpeg";
+│  if (filename.endsWith(".mp4")) return "video/mp4";
+│  if (filename.endsWith(".avi")) return "video/x-msvideo";
+⋮
+
+apps/agent/src/main/store.ts:
+⋮
+│interface StoreSchema {
+│  providerId: string | null;
+│  userId: string | null;
+│  token: string | null;
+│  agentPublicKey: string | null;
+│  agentPrivateKey: string | null;
+│  currentJobId: string | null;
+│  apiUrl: string;
+│  machineRegistered: boolean;
+⋮
+│function loadDotEnv(): void {
+│  const candidates = [
+│    path.resolve(process.resourcesPath, ".env"),
+│    path.resolve(__dirname, "../../.env"),
+│    path.resolve(process.cwd(), "apps/agent/.env"),
+│    path.resolve(process.cwd(), ".env"),
+│  ];
+│
+│  for (const envPath of candidates) {
+│    if (!fs.existsSync(envPath)) continue;
+⋮
+
+apps/agent/src/main/ws-client.ts:
+⋮
+│export function connectWebSocket(win: BrowserWindow | null) {
+│  mainWin = win;
+│  const providerId = store.get("providerId");
+│  if (!providerId) return;
+│
+│  const baseUrl = store.get("apiUrl").replace(/\/api$/, "");
+│  const wsUrl = baseUrl
+│    .replace("http://", "ws://")
+│    .replace("https://", "wss://");
+│
+⋮
+│export function disconnectWebSocket() {
+│  if (reconnectTimer) {
+│    clearTimeout(reconnectTimer);
+│    reconnectTimer = null;
+│  }
+│  ws?.close();
+│  ws = null;
+│  mainWin?.webContents.send("ws-status", "disconnected");
+⋮
+
+apps/agent/src/preload/index.d.ts:
+⋮
+│declare global {
+│  interface Window {
+│    electron: ElectronAPI
+│    api: unknown
+│  }
+⋮
+
+apps/agent/src/renderer/src/App.tsx:
+⋮
+│      <AuthPage
+│        onAuth={(u, p) => {
+│          setUser(u);
+│          setProvider(p);
+│          setPage("dashboard");
+⋮
+│      <OnboardPage
+│        onComplete={(p) => {
+│          setProvider(p);
+│          setPage("dashboard");
+│        }}
+│        onBack={() => setPage("dashboard")}
+⋮
+│    <DashboardPage
+│      user={user}
+│      provider={provider}
+│      onAddMachine={() => setPage("onboard")}
+│      onProviderUpdate={setProvider}
+│      onLogout={() => {
+│        setUser(null);
+│        setProvider(null);
+│        setPage("auth");
+⋮
+
+apps/agent/src/renderer/src/main.tsx:
+⋮
+│declare global {
+│  interface Window {
+│    api: {
+│      login: (email: string, password: string) => Promise<any>;
+│      register: (name: string, email: string, password: string) => 
+Promise<any>;
+│      logout: () => Promise<any>;
+│      getSession: () => Promise<any>;
+│      detectMachine: () => Promise<any>;
+│      registerMachine: (payload: any) => Promise<any>;
+│      setStatus: (status: string) => Promise<any>;
+│      getStats: () => Promise<any>;
+⋮
+
+apps/agent/src/renderer/src/pages/AuthPage.tsx:
+⋮
+│            {mode === "login" ? (
+│              <>
+│                Don't have an account?{" "}
+│                <button
+│                  onClick={() => {
+│                    setMode("register");
+│                    setError("");
+│                  }}
+⋮
+│                Already have an account?{" "}
+│                <button
+│                  onClick={() => {
+│                    setMode("login");
+│                    setError("");
+⋮
+
+apps/agent/src/renderer/src/pages/DashboardPage.tsx:
+⋮
+│interface Props {
+│  user: any;
+│  provider: any;
+│  onAddMachine: () => void;
+│  onProviderUpdate: (p: any) => void;
+│  onLogout: () => void;
+⋮
+
+apps/agent/src/renderer/src/pages/OnboardPage.tsx:
+⋮
+│interface Props {
+│  onComplete: (provider: any) => void;
+│  onBack: () => void;
+⋮
+│type StepStatus = "pending" | "running" | "done" | "error" | "warn";
+│
+│interface DetectStep {
+│  label: string;
+│  status: StepStatus;
+│  value?: string;
+│  error?: string;
+⋮
+
+apps/server/src/config/jobTypes.ts:
+⋮
+│export type JobTypeKey = keyof typeof JOB_TYPES;
+
+apps/server/src/controllers/auth.controller.ts:
+⋮
+│function signToken(userId: string) {
+│  return jwt.sign({ userId }, requireEnv("JWT_SECRET"), { expiresIn: 
+"30d" });
+⋮
+
+apps/server/src/controllers/job.controller.ts:
+⋮
+│function extractAzureBlobName(uri: string, container: string): string | 
+null {
+│  try {
+│    const parsed = new URL(uri);
+│    const prefix = `/${container}/`;
+│    if (!parsed.pathname.startsWith(prefix)) return null;
+│    return parsed.pathname.slice(prefix.length);
+│  } catch {
+│    return null;
+│  }
+⋮
+│function sanitizeDownloadName(name: string): string {
+│  return name.replace(/[\r\n"]/g, "_");
+⋮
+│async function streamAzureBlob(
+│  blobName: string,
+│  res: Response,
+│  downloadName?: string,
+⋮
+│async function maybePresignAzureUri(
+│  uri: string | null,
+│  container: string,
+⋮
+
+apps/server/src/env.ts:
+⋮
+│export function requireEnv(name: string): string {
+│  const value = process.env[name]?.trim()
+│
+│  if (!value) {
+│    throw new Error(`${name} is not set`)
+│  }
+│
+│  return value
+⋮
+
+apps/server/src/jobs/heartbeatMonitor.ts:
+⋮
+│export function startHeartbeatMonitor() {
+│  setInterval(async () => {
+│    try {
+│      const result = await prisma.provider.updateMany({
+│        where: {
+│          status: { in: ["ACTIVE", "BUSY"] },
+│          lastHeartbeat: { lt: new Date(Date.now() - 90_000) },
+│        },
+│        data: { status: "OFFLINE" },
+│      });
+│
+⋮
+
+apps/server/src/lib/azure.ts:
+⋮
+│export async function uploadToAzure(
+│  containerName: string,
+│  blobName: string,
+│  body: Buffer | Readable,
+│  contentType: string,
+⋮
+│export async function generateReadSASUrl(
+│  containerName: string,
+│  blobName: string,
+│  expiresInSeconds = 3600,
+⋮
+│export async function blobExists(
+│  containerName: string,
+│  blobName: string,
+⋮
+
+apps/server/src/lib/redis.ts:
+⋮
+│export function makeRedisConnection(): Redis {
+│  const url = process.env["REDIS_URL"];
+│  if (!url)
+│    throw new Error("[Redis] REDIS_URL environment variable is not set");
+│
+│  const conn = new Redis(url, {
+│    maxRetriesPerRequest: null,
+│    enableReadyCheck: false,
+│  });
+│
+⋮
+
+apps/server/src/middlewares/verifyAgent.ts:
+⋮
+│export async function verifyAgent(req: Request, res: Response, next: 
+NextFunction) {
+│  const providerId = req.headers['x-agent-id'] as string
+│  const signature  = req.headers['x-agent-sig'] as string
+│  const tsRaw      = req.headers['x-agent-timestamp'] as string
+│
+│  // Fallback to the logged-in provider owner when agent headers are 
+absent.
+│  if (!providerId || !signature || !tsRaw) {
+│    const auth = req.headers.authorization
+│    if (!auth?.startsWith('Bearer ')) {
+│      return res.status(401).json({ error: 'Missing agent auth headers' 
+})
+⋮
+
+apps/server/src/middlewares/verifyInternal.ts:
+⋮
+│export function verifyInternal(req: Request, res: Response, next: 
+NextFunction) {
+│  const secret = req.headers['x-internal-secret']
+│  if (!secret || secret !== requireEnv('INTERNAL_SECRET')) {
+│    return res.status(403).json({ error: 'Internal only' })
+│  }
+│  next()
+⋮
+
+apps/server/src/middlewares/verifyJWT.ts:
+⋮
+│export function verifyJWT(req: Request, res: Response, next: 
+NextFunction) {
+│  const auth = req.headers.authorization
+│  if (!auth?.startsWith('Bearer ')) {
+│    return res.status(401).json({ error: 'Missing token' })
+│  }
+│
+│  const token = auth.split(' ')[1]
+│  try {
+│    if(!token) return  res.status(401).json({ error: 'No token found' })
+│    const payload = jwt.verify(token, requireEnv('JWT_SECRET')) as 
+unknown as { userId: string };
+⋮
+
+apps/server/src/queues/jobQueue.ts:
+⋮
+│export interface JobMatchPayload {
+│  jobId: string;
+⋮
+│export async function enqueueJob(jobId: string): Promise<void> {
+│  await jobQueue.add("match", { jobId }, { jobId });
+│  logger.info(`[Queue] Enqueued job ${jobId}`);
+⋮
+
+apps/server/src/services/heartbeat.ts:
+⋮
+│export function startHeartbeatMonitor() {
+│  setInterval(async () => {
+│    try {
+│      const result = await prisma.provider.updateMany({
+│        where: {
+│          status: { in: ["ACTIVE", "BUSY"] },
+│          lastHeartbeat: {
+│            lt: new Date(Date.now() - 90_000), // missed 3 heartbeats
+│          },
+│        },
+⋮
+
+apps/server/src/services/solana.service.ts:
+⋮
+│function loadKeypair(secret: string): Keypair {
+│  try {
+│    if (secret.startsWith("[")) {
+│      return Keypair.fromSecretKey(Uint8Array.from(JSON.parse(secret)));
+│    }
+│    return Keypair.fromSecretKey(bs58.decode(secret));
+│  } catch (err) {
+│    throw new Error(
+│      "Failed to load SOLANA_AUTHORITY_KEYPAIR. Must be base58 or JSON 
+array.",
+│    );
+⋮
+│export async function verifyStakeTransaction(
+│  txSig: string,
+│  expectedProvider: string,
+│  minAmountLamports: number = 2_000_000_000,
+⋮
+│export async function verifyJobEscrow(
+│  jobIdNum: number,
+│  expectedClient: string,
+│  expectedAmountLamports: number,
+⋮
+│export async function assignProviderToEscrow(
+│  jobIdNum: number,
+│  providerWallet: string,
+⋮
+│export async function settleJob(
+│  jobIdNum: number,
+│  actualCostLamports: number,
+│  providerWallet: string,
+│  clientWallet: string,
+⋮
+│export async function refundJob(
+│  jobIdNum: number,
+│  clientWallet: string,
+⋮
+│export async function slashProviderStake(
+│  providerWallet: string,
+│  amountLamports: number,
+│  evidenceHashStr: string,
+│  evidenceUri: string,
+│  jobIdNum: number,
+⋮
+│export async function getJobEscrowState(jobIdNum: number): Promise<any> {
+│  const jobId = new BN(jobIdNum);
+│  const jobEscrowPda = getJobEscrowPda(programId, jobId);
+│  try {
+│    const state = await program.account.jobEscrow.fetch(jobEscrowPda);
+│    return state;
+│  } catch {
+│    return null;
+│  }
+⋮
+
+apps/server/src/workers/matchmaker.worker.ts:
+⋮
+│async function processJob(bullJob: BullJob<JobMatchPayload>): 
+Promise<void> {
+│  const { jobId } = bullJob.data;
+│
+│  const job = await prisma.job.findUnique({
+│    where: { id: jobId },
+│    select: {
+│      id: true,
+│      status: true,
+│      title: true,
+│      type: true,
+⋮
+│export function startMatchmakerWorker(): Worker<JobMatchPayload> {
+│  const worker = new Worker<JobMatchPayload>(QUEUE_NAME, processJob, {
+│    connection: makeRedisConnection(),
+│    prefix: "zan",
+│    concurrency: 5,
+│  });
+│
+│  worker.on("completed", (job) => {
+│    logger.info(`[Matchmaker] ✓ job ${job.data.jobId} matched`);
+│  });
+│
+⋮
+
+apps/web/app/(dashboard)/client/jobs/[id]/page.tsx:
+⋮
+│type JobStatus =
+⋮
+│interface ExecutionMetadata {
+│  executionTimeMs: number;
+│  vramUsedMb: number;
+│  avgUtilization: number;
+│  peakUtilization: number;
+│  tempDeltaC: number;
+│  powerDrawW: number;
+│  exitCode: number;
+│  logsUri: string;
+│  outputFiles: {
+⋮
+
+apps/web/app/(dashboard)/client/page.tsx:
+⋮
+│type JobStatus =
+⋮
+│            <button
+│              onClick={() => setPage((p) => Math.max(1, p - 1))}
+│              disabled={page === 1}
+│              className="rounded-full border border-hairline bg-canvas 
+px-[16px] py-[8px] text-[14p
+⋮
+
+apps/web/app/(dashboard)/client/submit/page.tsx:
+⋮
+│type JobTypeValue = (typeof JOB_TYPE_DEFS)[number]["value"];
+│
+⋮
+
+apps/web/app/api/auth/register/route.ts:
+⋮
+│export async function POST(req: Request): Promise<NextResponse> {
+│  try {
+│    const { name, email, password, role } = await req.json();
+│    const selectedRole = role === "PROVIDER" ? "PROVIDER" : "CLIENT";
+│
+│    if (!email || !password) {
+│      return NextResponse.json(
+│        { error: "Email and password required" },
+│        { status: 400 },
+│      );
+⋮
+
+apps/web/app/api/auth/wallet/challenge/route.ts:
+⋮
+│export async function GET() {
+│  const session = await getServerSession(authOptions);
+│  if (!session?.user) {
+│    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+│  }
+│  const userId = (session.user as { id: string }).id;
+│
+│  const nonce = crypto.randomBytes(32).toString('hex');
+│  const message = `Zan wallet verification\nNonce: ${nonce}\nTimestamp: 
+${Date.now()}`;
+│
+⋮
+
+apps/web/app/api/auth/wallet/route.ts:
+⋮
+│export async function PATCH(req: Request) {
+│  const session = await getServerSession(authOptions);
+│  if (!session?.user) {
+│    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+│  }
+│  const userId = (session.user as { id: string }).id;
+│
+│  let body;
+│  try {
+│    body = await req.json();
+⋮
+
+apps/web/app/layout.tsx:
+⋮
+│export default function RootLayout({
+│  children,
+⋮
+
+apps/web/app/register/page.tsx:
+⋮
+│type SignupRole = "CLIENT" | "PROVIDER";
+│
+⋮
+
+apps/web/components/shared/auth-provider.tsx:
+⋮
+│export function AuthProvider({
+│  children,
+⋮
+
+apps/web/components/shared/download-agent-button.tsx:
+⋮
+│interface DownloadAgentButtonProps {
+│  children?: React.ReactNode;
+│  className?: string;
+│  showIcon?: boolean;
+│  showPlatform?: boolean;
+⋮
+
+apps/web/components/shared/footer.tsx:
+⋮
+│export function Footer(): ReactElement {
+│  return (
+│    <footer className="bg-footer text-ink py-[64px] px-[24px]">
+│      <div className="container mx-auto max-w-7xl">
+│        <div className="grid grid-cols-2 md:grid-cols-6 gap-[32px] 
+mb-[64px]">
+│          <div className="col-span-2 md:col-span-2 flex flex-col 
+gap-[24px]">
+│            <Link href="/" className="flex items-center group">
+│              <span className="font-sans text-[20px] font-[600] 
+tracking-tight text-ink lowercase g
+│                {siteConfig.name}
+│              </span>
+⋮
+
+apps/web/components/shared/logo.tsx:
+⋮
+│export function Logo(): ReactElement {
+│  return (
+│    <Link href="/" className="flex items-center group">
+│      <span className="font-sans text-[20px] font-[600] tracking-tight 
+text-ink lowercase group-hov
+│        {siteConfig.name}.
+│      </span>
+│    </Link>
+│  );
+⋮
+
+apps/web/components/shared/navbar.tsx:
+⋮
+│            <Link
+│              key={idx}
+│              href={link.href}
+│              onMouseEnter={() => setHoveredIndex(idx)}
+│              onMouseLeave={() => setHoveredIndex(null)}
+⋮
+│                  <button
+│                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+│                    className="flex items-center gap-3 pl-2 pr-1 py-1 
+rounded-full border border-ha
+⋮
+
+apps/web/components/shared/wallet-connect-button.tsx:
+⋮
+│interface Props {
+│  className?: string;
+│  showBalance?: boolean;
+⋮
+
+apps/web/components/shared/wallet-provider.tsx:
+⋮
+│export function WalletProvider({ children }: { children: React.ReactNode 
+}) {
+│  const network = process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? 
+clusterApiUrl("devnet");
+│  const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
+│
+│  return (
+│    <ConnectionProvider endpoint={network}>
+│      <SolanaWalletProvider wallets={wallets} autoConnect>
+│        <WalletModalProvider>{children}</WalletModalProvider>
+│      </SolanaWalletProvider>
+│    </ConnectionProvider>
+⋮
+
+apps/web/components/ui/button.tsx:
+⋮
+│export interface ButtonProps
+│  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+│  variant?: "primary" | "primary-on-dark" | "ghost" | "text-link";
+│  asChild?: boolean;
+⋮
+│const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+│  ({ className, variant = "primary", asChild = false, ...props }, ref) =>
+{
+│    
+│    const baseStyles = "inline-flex items-center justify-center 
+whitespace-nowrap transition-colors
+│    
+│    const variants = {
+│      primary: "bg-primary text-on-primary rounded-full h-10 px-[24px] 
+py-[12px] text-[14px] font-[
+│      "primary-on-dark": "bg-on-primary text-primary rounded-full h-10 
+px-[24px] py-[12px] text-[14
+│      ghost: "bg-canvas text-ink border border-ink rounded-full h-10 
+px-[24px] py-[12px] text-[14px
+│      "text-link": "bg-transparent text-ink underline-offset-4 
+hover:underline text-[14px] font-[60
+│    };
+│
+│    return (
+│      <button
+│        className={cn(baseStyles, variants[variant], className)}
+│        ref={ref}
+│        {...props}
+│      />
+⋮
+
+apps/web/features/landing/components/problem-section.tsx:
+⋮
+│function ProblemCard({ card, index }: { card: { id: string; title: 
+string; description: string }; i
+│  return (
+│    <div className="flex flex-col gap-[16px] p-[24px] border 
+border-hairline bg-canvas">
+│      <div className="text-[11px] font-[450] leading-[1.3] 
+tracking-[0.2px] uppercase text-stone mb
+│        {card.id}
+│      </div>
+│      <h3 className="text-[24px] font-[400] leading-[1.0] text-ink">
+│        {card.title}
+│      </h3>
+│      <p className="text-[16px] leading-[1.5] text-graphite">
+⋮
+
+apps/web/features/landing/components/why-zan-section.tsx:
+⋮
+│function Counter({
+│  from,
+│  to,
+│  prefix,
+│  suffix,
+⋮
+│}): ReactElement {
+⋮
+│  useEffect(() => {
+│    if (inView && nodeRef.current) {
+│      const controls = animate(from, to, {
+│        duration: 2,
+│        ease: [0.16, 1, 0.3, 1],
+│        onUpdate(value) {
+│          if (nodeRef.current) {
+│            nodeRef.current.textContent = 
+`${prefix}${Math.floor(value)}${suffix}`;
+│          }
+│        },
+│      });
+⋮
+
+apps/web/hooks/use-escrow.ts:
+⋮
+│export function useEscrow() {
+│  const { connection } = useConnection();
+│  const wallet = useWallet();
+│
+│  const programId = new PublicKey(ESCROW_PROGRAM_ID);
+│  
+│  // We use any for wallet because anchor expects a slightly different 
+Wallet interface,
+│  // but it works fine with the wallet-adapter output.
+│  const provider = new AnchorProvider(connection, wallet as any, { 
+commitment: "confirmed" });
+│  const program = new Program<Escrow>(EscrowIDL as any, provider);
+│
+⋮
+
+apps/web/hooks/use-wallet-connection.ts:
+⋮
+│export function useWalletConnection() {
+│  const { publicKey, connected, connecting, disconnect, signMessage } =
+│    useWallet();
+│  const { connection } = useConnection();
+│  const [balance, setBalance] = useState<number | null>(null);
+│  const [saving, setSaving] = useState(false);
+│  const lastVerifiedAddress = useRef<string | null>(null);
+│  const lastBlockedAddress = useRef<string | null>(null);
+│
+│  useEffect(() => {
+⋮
+
+apps/web/lib/api.ts:
+⋮
+│async function getAuthHeaders(): Promise<HeadersInit> {
+│  const session = await getSession();
+│  const token = (session as any)?.accessToken ?? (session as 
+any)?.user?.token;
+│  return {
+│    "Content-Type": "application/json",
+│    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+│  };
+⋮
+│export const api = {
+│  async get(path: string) {
+│    const res = await fetch(`${BASE_URL}${path}`, {
+│      headers: await getAuthHeaders(),
+│      cache: "no-store",
+│    });
+│    if (!res.ok) throw new Error(await res.text());
+│    return res.json();
+│  },
+│
+│  async getText(path: string) {
+│    const res = await fetch(`${BASE_URL}${path}`, {
+│      headers: await getAuthHeaders(),
+│      cache: "no-store",
+│    });
+│    if (!res.ok) throw new Error(await res.text());
+│    return res.text();
+⋮
+│  async getBlob(path: string) {
+│    const res = await fetch(`${BASE_URL}${path}`, {
+│      headers: await getAuthHeaders(),
+│      cache: "no-store",
+│    });
+│    if (!res.ok) throw new Error(await res.text());
+│    return res.blob();
+⋮
+│  async post(path: string, body: any) {
+│    const res = await fetch(`${BASE_URL}${path}`, {
+│      method: "POST",
+│      headers: await getAuthHeaders(),
+│      body: JSON.stringify(body),
+│    });
+│    if (!res.ok) throw new Error(await res.text());
+│    return res.json();
+⋮
+│  async patch(path: string, body: any) {
+│    const res = await fetch(`${BASE_URL}${path}`, {
+│      method: "PATCH",
+│      headers: await getAuthHeaders(),
+│      body: JSON.stringify(body),
+│    });
+│    if (!res.ok) throw new Error(await res.text());
+│    return res.json();
+⋮
+
+apps/web/lib/auth.ts:
+⋮
+│export const authOptions: NextAuthOptions = {
+│  // We use JWT because we need to pass tokens to the Express backend 
+later
+│  session: { strategy: "jwt" },
+│  pages: {
+│    signIn: "/login",
+│  },
+│  providers: [
+│    CredentialsProvider({
+│      name: "Email and Password",
+│      credentials: {
+│        email: {
+│          label: "Email",
+│          type: "email",
+│          placeholder: "john@example.com",
+│        },
+│        password: { label: "Password", type: "password" },
+│      },
+│      async authorize(credentials) {
+│        if (!credentials?.email || !credentials?.password) {
+│          throw new Error("Missing credentials");
+│        }
+│
+│        const res = await fetch(`${API_URL}/api/auth/login`, {
+│          method: "POST",
+│          headers: { "Content-Type": "application/json" },
+│          body: JSON.stringify({
+│            email: credentials.email,
+⋮
+│  callbacks: {
+│    async jwt({ token, user }) {
+│      if (user) {
+│        token.id = user.id;
+│        token.role = (user as { role?: string }).role;
+│        token.accessToken = (user as { token?: string }).token;
+│      }
+│      return token;
+│    },
+│    async session({ session, token }) {
+│      if (session.user) {
+│        session.user.id = token.id as string;
+│        session.user.role = token.role as string;
+│      }
+│      (session as any).accessToken = token.accessToken;
+│      return session;
+⋮
+
+apps/web/lib/download-agent.ts:
+⋮
+│type Platform = "windows" | "macos" | "linux" | "unknown";
+│
+⋮
+
+apps/web/lib/jobQueue.ts:
+⋮
+│function getQueue(): Queue {
+│  if (!_queue) {
+│    const url = process.env.REDIS_URL;
+│    if (!url) throw new Error("[jobQueue] REDIS_URL is not set");
+│
+│    _redis = new Redis(url, { maxRetriesPerRequest: null, 
+enableReadyCheck: false });
+│    _queue = new Queue(QUEUE_NAME, {
+│      connection: _redis,
+│      prefix: "zan",
+│      defaultJobOptions: {
+⋮
+│export async function enqueueJob(jobId: string): Promise<void> {
+│  await getQueue().add("match", { jobId }, { jobId });
+⋮
+
+apps/web/lib/utils.ts:
+⋮
+│export function cn(...inputs: ClassValue[]) {
+│  return twMerge(clsx(inputs));
+⋮
+
+apps/web/types/next-auth.d.ts:
+⋮
+│declare module "next-auth" {
+│  interface Session {
+│    user: {
+│      id: string;
+│      role: string;
+│    } & DefaultSession["user"];
+│  }
+│
+│  interface User {
+│    role: string;
+⋮
+
+packages/contracts/escrow/init-devnet.ts:
+⋮
+│async function main() {
+│  // Configure the client to use the local cluster.
+│  anchor.setProvider(anchor.AnchorProvider.env());
+│  const provider = anchor.getProvider() as anchor.AnchorProvider;
+│
+│  // This reads the IDL and program ID from your workspace
+│  const program = anchor.workspace.Escrow as Program<Escrow>;
+│
+│  logger.info("Using wallet:", provider.wallet.publicKey.toBase58());
+│  logger.info("Program ID:", program.programId.toBase58());
+│
+⋮
+
+packages/contracts/escrow/programs/escrow/src/lib.rs:
+⋮
+│pub enum JobStatus {
+│    Funded,
+│    Completed,
+│    Refunded,
+│    Cancelled,
+│    Assigned,
+⋮
+│fn transfer_lamports<'info>(
+│    from: &AccountInfo<'info>,
+│    to: &AccountInfo<'info>,
+│    amount: u64,
+⋮
+│fn transfer_lamports_signed<'info>(
+│    from: &AccountInfo<'info>,
+│    to: &AccountInfo<'info>,
+│    amount: u64,
+│    signer_seeds: &[&[u8]],
+⋮
+
+packages/contracts/sdk/src/escrow.ts:
+⋮
+│export type Escrow = {
+│  "address": "G4AGRutZdKry9rMnJiZt2Noz42ifwghgZxiXCETfXHGg",
+│  "metadata": {
+│    "name": "escrow",
+│    "version": "0.1.0",
+│    "spec": "0.1.0",
+│    "description": "Created with Anchor"
+│  },
+│  "instructions": [
+│    {
+⋮
+
+packages/contracts/sdk/src/pda.ts:
+⋮
+│export function getConfigPda(programId: PublicKey): PublicKey {
+│  return PublicKey.findProgramAddressSync([CONFIG_SEED], programId)[0];
+⋮
+│export function getPlatformTreasuryPda(programId: PublicKey): PublicKey {
+│  return PublicKey.findProgramAddressSync([PLATFORM_TREASURY_SEED], 
+programId)[0];
+⋮
+│export function getProviderStakePda(programId: PublicKey, provider: 
+PublicKey): PublicKey {
+│  return PublicKey.findProgramAddressSync([PROVIDER_STAKE_SEED, 
+provider.toBuffer()], programId)[0]
+⋮
+│export function getProviderVaultPda(programId: PublicKey, provider: 
+PublicKey): PublicKey {
+│  return PublicKey.findProgramAddressSync([PROVIDER_VAULT_SEED, 
+provider.toBuffer()], programId)[0]
+⋮
+│export function getJobEscrowPda(programId: PublicKey, jobId: BN): 
+PublicKey {
+│  return PublicKey.findProgramAddressSync([JOB_ESCROW_SEED, 
+jobId.toArrayLike(Buffer, "le", 8)], pr
+⋮
+│export function getJobVaultPda(programId: PublicKey, jobId: BN): 
+PublicKey {
+│  return PublicKey.findProgramAddressSync([JOB_VAULT_SEED, 
+jobId.toArrayLike(Buffer, "le", 8)], pro
+⋮
+
+packages/crypto/src/index.ts:
+⋮
+│export function generateAgentKeypair() {
+│  const { privateKey, publicKey } = crypto.generateKeyPairSync('ed25519',
+{
+│    publicKeyEncoding:  { type: 'spki',  format: 'pem' },
+│    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+│  })
+│  return { privateKey, publicKey }
+⋮
+│export function signMessage(message: string, privateKeyPem: string): 
+string {
+│  const privateKey = crypto.createPrivateKey(privateKeyPem)
+│  const signature = crypto.sign(null, Buffer.from(message), privateKey)
+│  return signature.toString('base64')
+⋮
+│export function verifySignature(message: string, signature: string, 
+publicKeyPem: string): boolean 
+│  try {
+│    const publicKey = crypto.createPublicKey(publicKeyPem)
+│    return crypto.verify(
+│      null,
+│      Buffer.from(message),
+│      publicKey,
+│      Buffer.from(signature, 'base64')
+│    )
+│  } catch {
+⋮
+│export function buildMessage(providerId: string, action: string, 
+timestamp: number): string {
+│  return `${providerId}:${action}:${timestamp}`
+⋮
+
+packages/db/prisma/reset.mjs:
+⋮
+│async function main() {
+│  await pool.query(`
+│    TRUNCATE TABLE
+│      "JobEvent",
+│      "Escrow",
+│      "StakeTransaction",
+│      "ProviderMetric",
+│      "Job",
+│      "Provider",
+│      "Session",
+⋮
+
+packages/types/index.ts:
+⋮
+│export interface JobPayload {
+│  jobId: string
+│  type: string
+│  dockerImage: string
+│  inputUri: string
+│  requiredVramGB: number
+│  timeLimitSeconds: number
+⋮
+│export interface ExecutionMetadata {
+│  executionTimeMs: number
+│  vramUsedMb: number
+│  avgUtilization: number
+│  peakUtilization: number
+│  tempDeltaC: number
+│  powerDrawW: number
+│  exitCode: number
+⋮
+│export type WSMessageType =
+│  | "JOB_ASSIGNED"
+│  | "JOB_CANCELLED"
+│  | "PING"
+⋮
+│export interface WSMessage {
+│  type: WSMessageType
+│  payload: any
+⋮
+
+turbo/generators/config.ts:
+⋮
+│export default function generator(plop: PlopTypes.NodePlopAPI): void {
+│  plop.setGenerator("package", {
+│    description: "Create a new package in packages/*",
+│    prompts: [
+│      {
+│        type: "input",
+│        name: "name",
+│        message: "Package name (used as packages/<name> and 
+@repo/<name>):",
+│        validate: (input: string) =>
+│          /^[a-z0-9-]+$/.test(input)
+⋮
+

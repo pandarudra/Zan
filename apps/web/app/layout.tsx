@@ -1,21 +1,14 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
 import { AuthProvider } from "@/components/shared/auth-provider";
 import { WalletProvider } from "@/components/shared/wallet-provider";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -31,22 +24,20 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="dark scroll-smooth"
+      className="scroll-smooth"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <body
         className={`
-          ${geistSans.variable} ${geistMono.variable} 
-          antialiased font-sans 
-          bg-brand-dark text-white min-h-screen flex flex-col
+          ${inter.variable}
+          antialiased font-sans
+          bg-canvas text-ink min-h-screen w-full overflow-x-hidden
         `}
       >
         <AuthProvider>
           <WalletProvider>
-            <Navbar />
-            <main className="flex-1 pt-16">{children}</main>
-            <Footer />
+            {children}
           </WalletProvider>
         </AuthProvider>
       </body>

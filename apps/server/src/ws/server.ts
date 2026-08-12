@@ -1,80 +1,90 @@
-import { WebSocketServer, WebSocket } from 'ws'
-import { Server } from 'http'
-import type { WSMessage } from '@repo/types'
-import { prisma } from '@repo/db'
+import { WebSocketServer, WebSocket } from "ws";
+import { Server } from "http";
+import type { WSMessage } from "@repo/types";
+import { prisma } from "@repo/db";
+import { logger } from "../lib/logger.js";
 
 // Map of providerId → WebSocket connection
-const connections = new Map<string, WebSocket>()
+const connections = new Map<string, WebSocket>();
 
 export function setupWebSocketServer(server: Server) {
-  const wss = new WebSocketServer({ server, path: '/ws' })
+  const wss = new WebSocketServer({ server, path: "/ws" });
 
-  wss.on('connection', (ws, req) => {
-    const providerId = new URL(req.url!, `http://localhost`).searchParams.get('providerId')
+  wss.on("connection", (ws, req) => {
+    const providerId = new URL(req.url!, `http://localhost`).searchParams.get(
+      "providerId",
+    );
 
     if (!providerId) {
-      ws.close()
-      return
+      ws.close();
+      return;
     }
 
-    connections.set(providerId, ws)
-    console.log(`Provider ${providerId} connected via WebSocket`)
-    void prisma.provider.update({
-      where: { id: providerId },
-      data: { status: 'ACTIVE', lastHeartbeat: new Date() },
-    }).catch((err) => {
-      console.warn(`[WS] Failed to mark provider ${providerId} ACTIVE:`, err.message)
-    })
-
-    ws.on('message', (data) => {
-      const msg: WSMessage = JSON.parse(data.toString())
-      if (msg.type === 'PONG') return // heartbeat ack
-    })
-
-    ws.on('close', () => {
-      connections.delete(providerId)
-      console.log(`Provider ${providerId} disconnected`)
-      void prisma.provider.update({
+    connections.set(providerId, ws);
+    logger.info(`Provider ${providerId} connected via WebSocket`);
+    void prisma.provider
+      .update({
         where: { id: providerId },
-        data: { status: 'OFFLINE' },
-      }).catch(() => {})
-    })
-  })
+        data: { status: "ACTIVE", lastHeartbeat: new Date() },
+      })
+      .catch((err) => {
+        logger.warn(
+          `[WS] Failed to mark provider ${providerId} ACTIVE:`,
+          err.message,
+        );
+      });
 
-  console.log('WebSocket server ready')
+    ws.on("message", (data) => {
+      const msg: WSMessage = JSON.parse(data.toString());
+      if (msg.type === "PONG") return; // heartbeat ack
+    });
+
+    ws.on("close", () => {
+      connections.delete(providerId);
+      logger.info(`Provider ${providerId} disconnected`);
+      void prisma.provider
+        .update({
+          where: { id: providerId },
+          data: { status: "OFFLINE" },
+        })
+        .catch(() => {});
+    });
+  });
+
+  logger.info("WebSocket server ready");
 }
 
 // Called by Matchmaker to push job to a specific provider
 export function sendJobToProvider(providerId: string, job: any) {
-  const ws = connections.get(providerId)
+  const ws = connections.get(providerId);
 
   if (!ws || ws.readyState !== WebSocket.OPEN) {
-    console.warn(`Provider ${providerId} not connected`)
-    return false
+    logger.warn(`Provider ${providerId} not connected`);
+    return false;
   }
 
-  ws.send(JSON.stringify({ type: 'JOB_ASSIGNED', payload: job }))
-  return true
+  ws.send(JSON.stringify({ type: "JOB_ASSIGNED", payload: job }));
+  return true;
 }
 
 export function sendCancelToProvider(providerId: string, payload: any) {
-  const ws = connections.get(providerId)
+  const ws = connections.get(providerId);
 
   if (!ws || ws.readyState !== WebSocket.OPEN) {
-    console.warn(`Provider ${providerId} not connected for cancellation`)
-    return false
+    logger.warn(`Provider ${providerId} not connected for cancellation`);
+    return false;
   }
 
-  ws.send(JSON.stringify({ type: 'JOB_CANCELLED', payload }))
-  return true
+  ws.send(JSON.stringify({ type: "JOB_CANCELLED", payload }));
+  return true;
 }
 
 export function getConnectedProviderIds(): string[] {
-  const ids: string[] = []
+  const ids: string[] = [];
   for (const [providerId, ws] of connections.entries()) {
     if (ws.readyState === WebSocket.OPEN) {
-      ids.push(providerId)
+      ids.push(providerId);
     }
   }
-  return ids
+  return ids;
 }
