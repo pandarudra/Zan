@@ -51,14 +51,20 @@ async function waitForDependencies() {
 export const runServer = async () => {
   await waitForDependencies();
 
+  const rawOrigins = process.env.ALLOWED_ORIGINS;
+  if (!rawOrigins) {
+    throw new Error(
+      "[CORS] ALLOWED_ORIGINS environment variable is not set. " +
+      "Set it to a comma-separated list of allowed origins (e.g. https://your-app.vercel.app)."
+    );
+  }
+  const allowedOrigins = rawOrigins.split(",").map((o) => o.trim()).filter(Boolean);
+
   const app = express();
   app.use(helmet());
   app.use(
     cors({
-      origin: process.env.ALLOWED_ORIGINS?.split(",") ?? [
-        "http://localhost:3000",
-        "http://localhost:3001",
-      ],
+      origin: allowedOrigins,
       credentials: true,
     }),
   );

@@ -27,6 +27,10 @@ out/
 build
 dist
 
+# Compiled workspace package artifacts that should not be tracked
+packages/db/index.js
+packages/db/prisma.config.js
+
 
 # Debug
 npm-debug.log*
