@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { AlertCircle, ArrowRight, Loader2, Lock, Plus } from "lucide-react";
+import { AlertCircle, Loader2, Lock, Plus } from "lucide-react";
 import { PageContainer } from "@/components/shared/page-container";
 import { WalletConnectButton } from "@/components/shared/wallet-connect-button";
 import { Button } from "@/components/ui/button";
@@ -186,7 +186,7 @@ export default function ClientDashboard(): React.JSX.Element {
         aria-labelledby="recent-workloads-title"
         className="mt-8 overflow-hidden rounded-lg border border-hairline bg-canvas"
       >
-        <div className="flex min-h-16 items-center justify-between gap-4 border-b border-hairline px-4 sm:px-6">
+        <div className="flex min-h-16 items-center border-b border-hairline px-4 sm:px-6">
           <div>
             <h2
               id="recent-workloads-title"
@@ -198,14 +198,6 @@ export default function ClientDashboard(): React.JSX.Element {
               Your latest deployments and their status
             </p>
           </div>
-          <Link
-            href="/client/submit"
-            className="flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-ink-soft transition-colors hover:text-ink"
-          >
-            <span className="hidden sm:inline">New workload</span>
-            <span className="sm:hidden">New</span>
-            <ArrowRight aria-hidden="true" className="h-4 w-4" />
-          </Link>
         </div>
 
         {loading && (

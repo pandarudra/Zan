@@ -3,18 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   ArrowLeftRight,
   LayoutDashboard,
+  LogOut,
   Menu,
   Plus,
   Server,
-  Shield,
+  User,
   Wallet,
   X,
 } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { WalletConnectButton } from "@/components/shared/wallet-connect-button";
+import { useUser } from "@/hooks/use-user";
 
 const CLIENT_NAV = [
   { name: "Overview", href: "/client", icon: LayoutDashboard },
@@ -23,7 +26,6 @@ const CLIENT_NAV = [
 
 const PROVIDER_NAV = [
   { name: "Node Status", href: "/provider", icon: Server },
-  { name: "Stake", href: "/stake", icon: Shield },
 ];
 
 export default function DashboardLayout({
@@ -32,9 +34,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const { user: fetchedUser, loadUser } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileNavigationRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      void loadUser();
+    }
+  }, [status, loadUser]);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -60,6 +70,57 @@ export default function DashboardLayout({
     pathname === href ||
     (href === "/client" && pathname.startsWith("/client/jobs/"));
 
+  const userName =
+    fetchedUser?.name || session?.user?.name || "Account";
+  const userEmail = fetchedUser?.email || session?.user?.email || "";
+  const userInitial = userName.charAt(0).toUpperCase();
+
+  function SidebarFooter({ onAction }: { onAction?: () => void }) {
+    return (
+      <div className="border-t border-hairline p-4 space-y-1">
+        {/* User identity */}
+        <div className="flex items-center gap-3 px-3 py-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline bg-canvas text-xs font-semibold text-ink">
+            {userInitial}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-ink leading-tight">
+              {userName}
+            </p>
+            {userEmail && (
+              <p className="truncate text-xs text-stone leading-tight mt-0.5">
+                {userEmail}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Switch workspace */}
+        <Link
+          href={isProvider ? "/client" : "/provider"}
+          onClick={onAction}
+          className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-soft transition-colors hover:bg-canvas hover:text-ink"
+        >
+          <ArrowLeftRight aria-hidden="true" className="h-4 w-4 shrink-0" />
+          Switch to {isProvider ? "Client" : "Provider"}
+        </Link>
+
+        {/* Sign out */}
+        <button
+          type="button"
+          onClick={() => {
+            onAction?.();
+            void signOut();
+          }}
+          className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-soft transition-colors hover:bg-canvas hover:text-ink"
+        >
+          <LogOut aria-hidden="true" className="h-4 w-4 shrink-0" />
+          Sign Out
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-canvas">
       <a
@@ -69,6 +130,7 @@ export default function DashboardLayout({
         Skip to content
       </a>
 
+      {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-hairline bg-surface-cool md:flex xl:w-[280px]">
         <div className="flex h-20 items-center border-b border-hairline px-6">
           <Logo />
@@ -103,17 +165,10 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        <div className="border-t border-hairline p-4">
-          <Link
-            href={isProvider ? "/client" : "/provider"}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2 text-center text-xs font-medium text-ink-soft transition-colors hover:bg-canvas hover:text-ink"
-          >
-            <ArrowLeftRight aria-hidden="true" className="h-4 w-4" />
-            Switch to {isProvider ? "Client" : "Provider"}
-          </Link>
-        </div>
+        <SidebarFooter />
       </aside>
 
+      {/* Mobile overlay drawer */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <button
@@ -170,26 +225,22 @@ export default function DashboardLayout({
               })}
             </nav>
 
-            <div className="space-y-3 border-t border-hairline p-4">
-              <WalletConnectButton className="w-full" showBalance={false} />
-              <Link
-                href={isProvider ? "/client" : "/provider"}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2 text-center text-xs font-medium text-ink-soft transition-colors hover:bg-surface-cool hover:text-ink"
-              >
-                <ArrowLeftRight aria-hidden="true" className="h-4 w-4" />
-                Switch to {isProvider ? "Client" : "Provider"}
-              </Link>
+            <div className="border-t border-hairline px-4 pb-4 pt-3">
+              <WalletConnectButton className="w-full mb-3" showBalance={false} />
             </div>
+
+            <SidebarFooter onAction={() => setIsMobileMenuOpen(false)} />
           </aside>
         </div>
       )}
 
+      {/* Main content area */}
       <div
         inert={isMobileMenuOpen ? true : undefined}
         className="flex h-full min-w-0 flex-1 flex-col overflow-hidden"
       >
         <header className="flex h-20 shrink-0 items-center justify-between border-b border-hairline bg-canvas px-3 sm:px-4 md:px-6 lg:px-8">
+          {/* Mobile: hamburger + logo */}
           <div className="flex items-center gap-4 md:hidden">
             <button
               ref={menuButtonRef}
@@ -204,15 +255,15 @@ export default function DashboardLayout({
             </button>
             <Logo />
           </div>
-          <div className="hidden md:block">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone">
-              {workspaceLabel}
-            </p>
-          </div>
+
+          {/* Desktop: workspace label lives in sidebar — keep header clean */}
+          <div className="hidden md:block" />
+
+          {/* Right: wallet actions */}
           <div className="flex min-w-0 items-center gap-2 sm:gap-4">
             <Link
               href="/wallet"
-              aria-label="Wallet"
+              aria-label="Wallet verification"
               className="flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-hairline text-sm font-medium transition-colors hover:bg-surface-cool sm:w-auto sm:px-4"
             >
               <Wallet aria-hidden="true" className="h-4 w-4" />
