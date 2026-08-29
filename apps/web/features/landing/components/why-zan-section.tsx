@@ -1,5 +1,3 @@
-"use client";
-
 import type { ReactElement } from "react";
 import { LANDING_CONTENT } from "@/config/landing-content";
 
@@ -7,42 +5,43 @@ export function WhyZanSection(): ReactElement {
   const { tagline, headline, subheadline, stats } = LANDING_CONTENT.whyZan;
 
   return (
-    <section id="scale" className="relative py-16 bg-canvas text-ink border-b border-hairline">
-      <div className="container mx-auto px-6 max-w-6xl">
-        <div className="mb-16 max-w-2xl">
-          <div className="mb-6">
-            <span className="text-sm font-medium uppercase tracking-wider text-ink">
+    <section
+      id="scale"
+      className="scroll-mt-20 border-b border-hairline bg-surface-cool/40 py-16 text-ink sm:py-20 lg:py-24"
+    >
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12">
+          <div className="lg:col-span-7">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone">
               {tagline}
-            </span>
+            </p>
+            <h2 className="mt-5 max-w-2xl text-3xl font-normal tracking-[-0.03em] text-ink sm:text-4xl lg:text-5xl">
+              {headline}
+            </h2>
           </div>
-          <h2 className="text-2xl md:text-4xl font-normal tracking-tight mb-8 text-ink">
-            {headline}
-          </h2>
-          <p className="text-base text-graphite max-w-xl">
+          <p className="max-w-xl text-base leading-7 text-graphite sm:text-lg lg:col-span-5">
             {subheadline}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <dl className="mt-12 grid border-l border-t border-hairline sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
           {stats.map((stat) => (
             <div
               key={stat.id}
-              className="p-8 border border-hairline bg-canvas flex flex-col justify-between"
+              className="flex min-h-64 flex-col justify-between border-b border-r border-hairline bg-canvas p-6 sm:p-8"
             >
-              <div className="text-4xl font-normal text-ink mb-6">
+              <dd className="text-4xl font-normal tracking-[-0.04em] text-ink sm:text-5xl">
                 {stat.value}
-              </div>
+              </dd>
               <div>
-                <h3 className="text-base font-normal text-ink mb-3">
-                  {stat.label}
-                </h3>
-                <p className="text-sm text-graphite">
+                <dt className="text-base font-medium text-ink">{stat.label}</dt>
+                <p className="mt-2 text-sm leading-6 text-graphite">
                   {stat.description}
                 </p>
               </div>
             </div>
           ))}
-        </div>
+        </dl>
       </div>
     </section>
   );

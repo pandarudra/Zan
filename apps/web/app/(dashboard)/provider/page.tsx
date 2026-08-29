@@ -1,237 +1,163 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
-import {
-  Power,
-  Activity,
-  HardDrive,
-  Zap,
-  Layers,
-  Loader2,
-  Server,
-  Rocket,
-  Plus,
-} from "lucide-react";
+import { Activity, HardDrive, Loader2, Power, Server, Zap } from "lucide-react";
 import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 import { DownloadAgentButton } from "@/components/shared/download-agent-button";
 import { PageContainer } from "@/components/shared/page-container";
 
+interface ProviderMetrics {
+  totalEarnedSol?: number;
+  uptimePercent?: number;
+  successfulJobs?: number;
+}
+
+interface Provider {
+  id: string;
+  status: string;
+  tier: number;
+  gpuModel: string | null;
+  vramGB: number | null;
+  metrics?: ProviderMetrics | null;
+}
+
 export default function ProviderDashboard(): React.JSX.Element {
-  const { data: session } = useSession({ required: true });
+  const { data: session } = useSession();
   const router = useRouter();
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasProvider, setHasProvider] = useState(false);
-  const [providerData, setProviderData] = useState<any>(null);
+  const [provider, setProvider] = useState<Provider | null>(null);
+  const [metrics, setMetrics] = useState<ProviderMetrics | null>(null);
   const [isOnline, setIsOnline] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (session?.user && (session.user as any).role === "CLIENT") {
-      router.push("/client");
-    }
-  }, [session, router]);
-
-  useEffect(() => {
+  const loadProvider = useCallback(async () => {
     if (!session?.user) return;
-
-    api
-      .get("/api/providers/me")
-      .then((data: any) => {
-        if (data.hasProvider) {
-          setHasProvider(true);
-          setProviderData(data);
-          setIsOnline(
-            data.provider.status === "ACTIVE" ||
-              data.provider.status === "BUSY",
-          );
-        } else {
-          setHasProvider(false);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch provider data:", err);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    setIsLoading(true);
+    setError("");
+    try {
+      const data = (await api.get("/api/providers/me")) as {
+        provider: Provider | null;
+        metrics?: ProviderMetrics | null;
+      };
+      setProvider(data.provider);
+      setMetrics(data.metrics ?? data.provider?.metrics ?? null);
+      setIsOnline(data.provider?.status === "ACTIVE" || data.provider?.status === "BUSY");
+    } catch {
+      setError("Provider details could not be loaded.");
+    } finally {
+      setIsLoading(false);
+    }
   }, [session]);
+
+  useEffect(() => {
+    void loadProvider();
+  }, [loadProvider]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-canvas text-ink flex flex-col items-center justify-center relative overflow-hidden">
-        <Loader2 className="w-8 h-8 text-ink animate-spin mb-4" />
-        <p className="text-graphite font-mono text-sm">
-          Loading Node Telemetry...
-        </p>
-      </div>
+      <PageContainer className="flex min-h-[50vh] items-center justify-center">
+        <div role="status" className="flex items-center gap-3 text-sm text-graphite">
+          <Loader2 className="h-5 w-5 animate-spin" /> Loading node telemetry...
+        </div>
+      </PageContainer>
     );
   }
 
-  if (!hasProvider) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-canvas text-ink px-4 pt-20 pb-24 relative overflow-hidden flex flex-col items-center justify-center sm:px-6">
+      <PageContainer className="flex min-h-[50vh] max-w-xl flex-col items-center justify-center gap-5 text-center">
+        <Server className="h-10 w-10 text-error" />
+        <p role="alert" className="text-graphite">{error}</p>
+        <Button type="button" variant="ghost" onClick={loadProvider}>Try again</Button>
+      </PageContainer>
+    );
+  }
 
-
+  if (!provider) {
+    return (
+      <PageContainer className="flex min-h-[60vh] max-w-2xl items-center justify-center">
         <motion.div
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="relative z-10 w-full max-w-[420px] text-center"
+          className="w-full rounded-lg border border-hairline bg-canvas p-6 text-center sm:p-10"
         >
-          <div className="mx-auto mb-8 flex h-36 w-36 items-center justify-center rounded-full border border-hairline bg-transparent shadow-[0_0_0_1px_rgba(255,255,255,0.12)]">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-transparent">
-              <Rocket className="h-10 w-10 text-graphite" />
-            </div>
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-surface-cool">
+            <Server className="h-7 w-7 text-ink" />
           </div>
-
-          <h2 className="mb-8 text-4xl font-medium tracking-[-0.04em] text-ink">
-            No workloads yet
-          </h2>
-
-          <div className="mx-auto max-w-[240px] text-left text-[15px] leading-[1.8] text-graphite">
-            <p>
-              Deploy your first compute job to get started.
-              Upload a Python script or connect to a render pipeline.
-            </p>
-          </div>
-
-          <div className="mt-10 flex justify-center">
-            <button
-              type="button"
-              className="inline-flex items-center gap-3 text-xl font-semibold text-ink"
-            >
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-on-primary">
-                <Plus className="h-3.5 w-3.5" />
-              </span>
-              Deploy Workload
-            </button>
+          <h1 className="text-3xl tracking-[-0.03em] text-ink">Set up your provider node</h1>
+          <p className="mx-auto mt-3 max-w-md leading-7 text-graphite">
+            Stake your provider deposit, then install the Zan agent to register your GPU and start accepting jobs.
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button size="lg" onClick={() => router.push("/stake")}>Stake to register</Button>
+            <DownloadAgentButton className="min-h-12 justify-center" />
           </div>
         </motion.div>
-      </div>
+      </PageContainer>
     );
   }
 
-  const { provider, metrics } = providerData;
+  const cards = [
+    { label: "Tier level", value: `Tier ${provider.tier}`, icon: Zap },
+    { label: "Total earned", value: `${Number(metrics?.totalEarnedSol ?? 0).toFixed(2)} SOL`, icon: Activity },
+    { label: "Uptime", value: `${Number(metrics?.uptimePercent ?? 0).toFixed(1)}%`, icon: Server },
+    { label: "Tasks completed", value: (metrics?.successfulJobs ?? 0).toLocaleString(), icon: HardDrive },
+  ];
 
   return (
     <PageContainer
-      title="Node Control Panel"
-      description="Manage your GPU availability and track Solana earnings."
+      title="Node control panel"
+      description="Manage GPU availability and track your network earnings."
       actions={
-        <div className="flex items-center gap-4">
-          <span className="font-mono text-xs px-2 py-1 rounded bg-surface-cool border border-hairline text-graphite">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <span className="rounded-md border border-hairline bg-surface-cool px-3 py-2 font-mono text-xs text-graphite">
             ID: {provider.id.slice(0, 10).toUpperCase()}
           </span>
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            onClick={() => setIsOnline(!isOnline)}
-            className={`group relative flex items-center gap-4 px-6 py-3 rounded-lg border transition-all duration-500 overflow-hidden ${
-              isOnline
-                ? "border-ink bg-surface-cool shadow-sm"
-                : "border-red-500/40 bg-red-500/10 shadow-sm"
-            }`}
+          <Button
+            type="button"
+            variant={isOnline ? "secondary" : "danger"}
+            size="lg"
+            aria-pressed={isOnline}
+            onClick={() => setIsOnline((value) => !value)}
+            className="gap-2"
           >
-            <div
-              className={`p-2 rounded-full transition-colors ${
-                isOnline ? "bg-primary text-on-primary" : "bg-red-500 text-ink"
-              }`}
-            >
-              <Power className="w-4 h-4" />
-            </div>
-            <span
-              className={`font-bold tracking-wider uppercase text-sm ${
-                isOnline ? "text-ink" : "text-red-500"
-              }`}
-            >
-              {isOnline ? "Accepting Jobs" : "Node Offline"}
-            </span>
-          </motion.button>
+            <Power className="h-4 w-4" /> {isOnline ? "Accepting jobs" : "Node offline"}
+          </Button>
         </div>
       }
     >
-
-        {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          {[
-            {
-              label: "Tier Level",
-              value: `Tier ${provider.tier}`,
-              icon: Zap,
-              border: "border-ink",
-            },
-            {
-              label: "Total Earned",
-              value: `${Number(metrics?.totalEarnedSol || 0).toFixed(2)} SOL`,
-              icon: Layers,
-              border: "border-hairline",
-            },
-            {
-              label: "Uptime",
-              value: `${Number(metrics?.uptimePercent || 0).toFixed(1)}%`,
-              icon: Activity,
-              border: "border-hairline",
-            },
-            {
-              label: "Tasks Completed",
-              value: (metrics?.successfulJobs || 0).toLocaleString(),
-              icon: HardDrive,
-              border: "border-hairline",
-            },
-          ].map((metric, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className={`p-6 rounded-none border ${metric.border} bg-canvas  flex flex-col justify-between`}
-            >
-              <div className="flex items-center justify-between mb-8">
-                <p className="text-graphite text-sm font-light">
-                  {metric.label}
-                </p>
-                <metric.icon className="w-5 h-5 text-stone" />
-              </div>
-              <p className="text-3xl font-bold text-ink tracking-tight">
-                {metric.value}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Hardware Telemetry HUD */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="rounded-none border border-hairline bg-canvas overflow-hidden relative"
-        >
-          {/* Scanning Line Effect */}
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-surface-cool shadow-[0_0_15px_#00ffd1] animate-[scanline_4s_ease-in-out_infinite]" />
-
-          <div className="px-8 py-6 border-b border-hairline flex items-center justify-between">
-            <h2 className="text-xl font-bold text-ink flex items-center gap-3">
-              Hardware Telemetry
-            </h2>
-            <div
-              className={`px-3 py-1 rounded-full text-xs font-mono border flex items-center gap-2 ${isOnline ? "bg-surface-cool border-ink text-ink" : "bg-surface-cool border-hairline text-graphite"}`}
-            >
-              {isOnline && (
-                <span className="w-1.5 h-1.5 rounded-full bg-primary text-on-primary animate-pulse" />
-              )}
-              {provider.gpuModel || "Unknown GPU"} ({provider.vramGB || 0}GB)
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map(({ label, value, icon: Icon }, index) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.06 }}
+            className="rounded-lg border border-hairline bg-canvas p-5"
+          >
+            <div className="mb-8 flex items-center justify-between text-sm text-graphite">
+              {label}<Icon className="h-5 w-5 text-stone" />
             </div>
-          </div>
+            <p className="text-2xl font-semibold tracking-tight text-ink">{value}</p>
+          </motion.div>
+        ))}
+      </div>
 
-          <div className="p-8 flex items-center justify-center text-stone text-sm font-mono">
-            Live telemetry is streamed by the desktop agent. Launch the agent to
-            see real-time GPU metrics.
-          </div>
-        </motion.div>
+      <section className="overflow-hidden rounded-lg border border-hairline bg-canvas">
+        <div className="flex flex-col gap-3 border-b border-hairline p-5 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold text-ink">Hardware telemetry</h2>
+          <span className="rounded-full border border-hairline bg-surface-cool px-3 py-1 text-xs text-graphite">
+            {provider.gpuModel || "Unknown GPU"} · {provider.vramGB ?? 0} GB
+          </span>
+        </div>
+        <div className="p-8 text-center text-sm leading-6 text-graphite">
+          Live telemetry is streamed by the desktop agent. Launch the agent to see real-time GPU metrics.
+        </div>
+      </section>
     </PageContainer>
   );
 }

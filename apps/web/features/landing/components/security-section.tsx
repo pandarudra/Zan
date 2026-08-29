@@ -1,5 +1,3 @@
-"use client";
-
 import type { ReactElement } from "react";
 import Image from "next/image";
 import { LANDING_CONTENT } from "@/config/landing-content";
@@ -10,51 +8,50 @@ export function SecuritySection(): ReactElement {
   return (
     <section
       id="security"
-      className="relative py-16 bg-canvas text-ink"
+      className="scroll-mt-20 bg-canvas py-16 text-ink sm:py-20 lg:py-24"
     >
-      <div className="container mx-auto px-6 max-w-6xl relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Left Side */}
-          <div className="lg:col-span-5 sticky top-24 self-start">
-            <div className="mb-6">
-              <span className="text-sm font-medium uppercase tracking-wider text-ink">
-                {tagline}
-              </span>
-            </div>
-            <h2 className="text-2xl md:text-3xl font-normal tracking-tight mb-8 text-ink">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:col-span-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone">
+              {tagline}
+            </p>
+            <h2 className="mt-5 text-3xl font-normal tracking-[-0.03em] text-ink sm:text-4xl lg:text-5xl">
               {headline}
             </h2>
-            <p className="text-base text-graphite max-w-sm mb-12">
+            <p className="mt-6 max-w-md text-base leading-7 text-graphite sm:text-lg">
               {subheadline}
             </p>
-            <div className="relative w-full max-w-64 aspect-square rounded-md overflow-hidden border border-hairline bg-canvas">
-              <Image
-                src="/images/Gemini_Generated_Image_iz6uaiz6uaiz6uai.png"
-                alt="Cryptographic Security Lock Illustration"
-                fill
-                className="object-cover"
-              />
-            </div>
           </div>
 
-          {/* Right Side */}
-          <div className="lg:col-span-7">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
-              {features.map((feature, idx) => (
-                <div key={idx} className="flex flex-col">
-                  <div className="text-xs font-medium uppercase tracking-wider text-stone mb-4">
-                    0{idx + 1}
-                  </div>
-                  <h3 className="text-base font-normal text-ink mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-graphite">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
+          <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-hairline bg-surface-cool lg:col-span-7">
+            <Image
+              src="/images/security_cryptographic_lock_1786390018145.png"
+              alt="A cryptographic lock protecting distributed compute data"
+              fill
+              sizes="(min-width: 1024px) 58vw, 100vw"
+              className="object-cover"
+            />
           </div>
+        </div>
+
+        <div className="mt-12 grid border-l border-t border-hairline sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
+          {features.map((feature, index) => (
+            <article
+              key={feature.title}
+              className="border-b border-r border-hairline p-6 sm:p-8"
+            >
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-stone">
+                0{index + 1}
+              </span>
+              <h3 className="mt-8 text-lg font-medium text-ink">
+                {feature.title}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-graphite">
+                {feature.description}
+              </p>
+            </article>
+          ))}
         </div>
       </div>
     </section>

@@ -2,30 +2,22 @@ import { LANDING_CONTENT } from "@/config/landing-content";
 import type { ReactElement } from "react";
 
 export function TickerSection(): ReactElement {
-  const items = [
-    ...LANDING_CONTENT.ticker,
-    "Kubernetes",
-    "Redis",
-    "Kafka",
-    "PostgreSQL",
-    "Next.js",
-    "React",
-    "TypeScript",
-  ];
-
   return (
-    <section className="py-12 border-b border-hairline bg-canvas">
-      <div className="container mx-auto px-6">
-        <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-6">
-          {items.map((item, i) => (
-            <span
-              key={i}
-              className="text-xs font-medium text-stone uppercase tracking-wider"
+    <section
+      aria-label="Supported technologies"
+      className="border-b border-hairline bg-surface-cool/40 py-8"
+    >
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+        <ul className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4 lg:grid-cols-8">
+          {LANDING_CONTENT.ticker.map((item) => (
+            <li
+              key={item}
+              className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-stone"
             >
               {item}
-            </span>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );

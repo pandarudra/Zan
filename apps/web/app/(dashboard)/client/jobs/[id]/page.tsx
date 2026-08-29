@@ -1,34 +1,22 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
-  CheckCircle2,
   XCircle,
   Loader2,
   Cpu,
-  ExternalLink,
+  Download,
   RefreshCw,
   Clock,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { PageContainer } from "@/components/shared/page-container";
-
-type JobStatus =
-  | "CREATED"
-  | "FUNDED"
-  | "QUEUED"
-  | "ASSIGNED"
-  | "RUNNING"
-  | "COMPLETED"
-  | "FAILED"
-  | "DISPUTED"
-  | "PAID"
-  | "REFUNDED";
+import { Button } from "@/components/ui/button";
+import { StatusBadge, type JobStatus } from "@/components/ui/status-badge";
 
 interface ExecutionMetadata {
   executionTimeMs: number;
@@ -77,72 +65,6 @@ interface Job {
   events: JobEvent[];
 }
 
-const STATUS_CONFIG: Record<
-  JobStatus,
-  { label: string; color: string; bg: string; border: string }
-> = {
-  CREATED: {
-    label: "Created",
-    color: "text-graphite",
-    bg: "bg-surface-cool",
-    border: "border-hairline",
-  },
-  FUNDED: {
-    label: "In Queue",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/20",
-  },
-  QUEUED: {
-    label: "Queued",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/20",
-  },
-  ASSIGNED: {
-    label: "Assigned",
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/20",
-  },
-  RUNNING: {
-    label: "Running",
-    color: "text-ink",
-    bg: "bg-surface-cool",
-    border: "border-ink",
-  },
-  COMPLETED: {
-    label: "Completed",
-    color: "text-green-400",
-    bg: "bg-green-500/10",
-    border: "border-green-500/20",
-  },
-  FAILED: {
-    label: "Failed",
-    color: "text-red-400",
-    bg: "bg-red-500/10",
-    border: "border-red-500/20",
-  },
-  DISPUTED: {
-    label: "Disputed",
-    color: "text-orange-400",
-    bg: "bg-orange-500/10",
-    border: "border-orange-500/20",
-  },
-  PAID: {
-    label: "Paid",
-    color: "text-green-400",
-    bg: "bg-green-500/10",
-    border: "border-green-500/20",
-  },
-  REFUNDED: {
-    label: "Refunded",
-    color: "text-orange-400",
-    bg: "bg-orange-500/10",
-    border: "border-orange-500/20",
-  },
-};
-
 const TERMINAL = new Set<JobStatus>([
   "COMPLETED",
   "FAILED",
@@ -166,13 +88,6 @@ function fmtDate(iso: string): string {
   });
 }
 
-function StatusIcon({ status }: { status: JobStatus }): React.ReactElement {
-  if (status === "COMPLETED" || status === "PAID" || status === "REFUNDED")
-    return <CheckCircle2 className="w-4 h-4 text-green-400" />;
-  if (status === "FAILED") return <XCircle className="w-4 h-4 text-red-400" />;
-  return <Loader2 className="w-4 h-4 animate-spin" />;
-}
-
 function StatCard({
   label,
   value,
@@ -181,7 +96,7 @@ function StatCard({
   value: string;
 }): React.ReactElement {
   return (
-    <div className="rounded-none border border-hairline bg-canvas p-4">
+    <div className="rounded-lg border border-hairline bg-canvas p-4">
       <p className="text-xs text-stone mb-1">{label}</p>
       <p className="text-ink font-semibold text-sm truncate">{value}</p>
     </div>
@@ -213,6 +128,7 @@ async function downloadBlob(path: string, filename: string): Promise<void> {
 function LogViewer({ jobId }: { jobId: string }): React.ReactElement {
   const [logs, setLogs] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -226,7 +142,7 @@ function LogViewer({ jobId }: { jobId: string }): React.ReactElement {
       })
       .catch(() => {
         if (cancelled) return;
-        setLogs("Failed to load logs");
+        setError(true);
         setLoading(false);
       });
 
@@ -235,18 +151,18 @@ function LogViewer({ jobId }: { jobId: string }): React.ReactElement {
     };
   }, [jobId]);
 
-  if (loading)
-    return <div className="text-sm text-graphite">Loading logs...</div>;
+  if (loading) return <div role="status" className="text-sm text-graphite">Loading logs...</div>;
+
+  if (error) return <div role="alert" className="rounded-lg border border-error/20 bg-error-bg p-4 text-sm text-error">Failed to load execution logs.</div>;
 
   return (
-    <pre className="max-h-96 overflow-auto rounded-none bg-canvas p-4 text-xs text-green-400 font-mono whitespace-pre-wrap">
+    <pre className="max-h-96 overflow-auto rounded-lg bg-surface-cool p-4 text-xs text-ink-soft font-mono whitespace-pre-wrap">
       {logs || "No logs captured"}
     </pre>
   );
 }
 
 export default function JobDetailPage(): React.ReactElement {
-  useSession({ required: true });
   const params = useParams();
   const router = useRouter();
   const jobId = params.id as string;
@@ -255,14 +171,18 @@ export default function JobDetailPage(): React.ReactElement {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [downloading, setDownloading] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const fetchJob = useCallback(async () => {
     try {
-      const data = await api.get(`/api/jobs/${jobId}`);
+      const data = (await api.get(`/api/jobs/${jobId}`)) as { job: Job };
       setJob(data.job);
-    } catch (err: any) {
-      if (err.message.includes("404") || err.message.includes("403")) {
-        router.push("/client");
+      setFetchError("");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
+      if (["404", "403", "Not your job", "Job not found"].some((value) => message.includes(value))) {
+        router.replace("/client");
         return;
       }
       setFetchError("Failed to load job.");
@@ -284,23 +204,31 @@ export default function JobDetailPage(): React.ReactElement {
   const handleDownloadOutput = useCallback(async () => {
     if (!job?.outputUri) return;
     const filename = getFilenameFromUri(job.outputUri, "output");
+    setDownloading("output");
+    setActionError("");
     try {
       await downloadBlob(`/api/jobs/${job.id}/output`, filename);
-    } catch (err) {
-      console.error("[downloadOutput]", err);
+    } catch {
+      setActionError("The output could not be downloaded. Please try again.");
+    } finally {
+      setDownloading("");
     }
   }, [job]);
 
   const handleDownloadOutputFile = useCallback(
     async (file: { filename: string }) => {
       if (!job?.id) return;
+      setDownloading(file.filename);
+      setActionError("");
       try {
         await downloadBlob(
           `/api/jobs/${job.id}/outputs?name=${encodeURIComponent(file.filename)}`,
           file.filename,
         );
-      } catch (err) {
-        console.error("[downloadOutputFile]", err);
+      } catch {
+        setActionError(`Could not download ${file.filename}.`);
+      } finally {
+        setDownloading("");
       }
     },
     [job],
@@ -309,9 +237,12 @@ export default function JobDetailPage(): React.ReactElement {
   const handleCancel = async (): Promise<void> => {
     if (!job || !CANCELLABLE.has(job.status)) return;
     setCancelling(true);
+    setActionError("");
     try {
       await api.patch(`/api/jobs/${jobId}/cancel`, {});
       await fetchJob();
+    } catch {
+      setActionError("The job could not be cancelled. Please try again.");
     } finally {
       setCancelling(false);
     }
@@ -320,7 +251,7 @@ export default function JobDetailPage(): React.ReactElement {
   if (loading) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-ink" />
+        <Loader2 aria-label="Loading job" className="w-8 h-8 animate-spin text-ink" />
       </PageContainer>
     );
   }
@@ -340,12 +271,11 @@ export default function JobDetailPage(): React.ReactElement {
     );
   }
 
-  const cfg = STATUS_CONFIG[job.status];
   const isTerminal = TERMINAL.has(job.status);
   const canCancel = CANCELLABLE.has(job.status);
 
   return (
-    <PageContainer className="max-w-3xl">
+    <PageContainer className="max-w-5xl">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -367,14 +297,7 @@ export default function JobDetailPage(): React.ReactElement {
               </h1>
               <p className="font-mono text-xs text-stone">{job.id}</p>
             </div>
-            <div
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full border shrink-0 ${cfg.bg} ${cfg.border}`}
-            >
-              <StatusIcon status={job.status} />
-              <span className={`text-sm font-semibold ${cfg.color}`}>
-                {cfg.label}
-              </span>
-            </div>
+            <StatusBadge status={job.status} className="shrink-0 px-4 py-2 text-sm" />
           </div>
 
           {/* Metrics strip */}
@@ -392,7 +315,7 @@ export default function JobDetailPage(): React.ReactElement {
             ].map(({ label, value }) => (
               <div
                 key={label}
-                className="rounded-none border border-hairline bg-canvas p-4"
+                className="rounded-lg border border-hairline bg-canvas p-4"
               >
                 <p className="text-xs text-stone mb-1">{label}</p>
                 <p className="text-ink font-medium text-sm truncate">
@@ -404,8 +327,8 @@ export default function JobDetailPage(): React.ReactElement {
 
           {/* Assigned node */}
           {job.provider && (
-            <div className="rounded-none border border-hairline bg-canvas p-6 mb-6 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-none bg-surface-cool flex items-center justify-center shrink-0">
+            <div className="rounded-lg border border-hairline bg-canvas p-6 mb-6 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-surface-cool flex items-center justify-center shrink-0">
                 <Cpu className="w-5 h-5 text-ink" />
               </div>
               <div>
@@ -425,7 +348,7 @@ export default function JobDetailPage(): React.ReactElement {
           )}
 
           {/* I/O URIs */}
-          <div className="rounded-none border border-hairline bg-canvas p-6 mb-6 space-y-4">
+          <div className="rounded-lg border border-hairline bg-canvas p-6 mb-6 space-y-4">
             <div>
               <p className="text-xs text-stone uppercase tracking-widest mb-2">
                 Input
@@ -442,10 +365,11 @@ export default function JobDetailPage(): React.ReactElement {
                 <button
                   type="button"
                   onClick={handleDownloadOutput}
-                  className="font-mono text-sm text-ink break-all hover:underline inline-flex items-center gap-1.5"
+                  disabled={downloading === "output"}
+                  className="inline-flex min-h-11 items-center gap-2 font-mono text-sm text-ink hover:underline disabled:opacity-50"
                 >
-                  Download output
-                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                  {downloading === "output" ? "Downloading..." : "Download output"}
+                  <Download className="w-4 h-4 shrink-0" />
                 </button>
               </div>
             )}
@@ -457,7 +381,7 @@ export default function JobDetailPage(): React.ReactElement {
               job.status === "FAILED" ||
               job.status === "PAID" ||
               job.status === "REFUNDED") && (
-              <div className="rounded-none border border-hairline bg-canvas p-6 mb-6">
+              <div className="rounded-lg border border-hairline bg-canvas p-6 mb-6">
                 <h2 className="text-xs font-semibold text-graphite uppercase tracking-widest mb-4">
                   Execution Logs
                 </h2>
@@ -467,7 +391,7 @@ export default function JobDetailPage(): React.ReactElement {
 
           {/* Output Files */}
           {job.executionMetadata?.outputFiles?.length ? (
-            <div className="rounded-none border border-hairline bg-canvas p-6 mb-6">
+            <div className="rounded-lg border border-hairline bg-canvas p-6 mb-6">
               <h2 className="text-xs font-semibold text-graphite uppercase tracking-widest mb-4">
                 Output Files
               </h2>
@@ -475,28 +399,34 @@ export default function JobDetailPage(): React.ReactElement {
                 {job.executionMetadata.outputFiles.map((file) => (
                   <div
                     key={file.filename}
-                    className="flex items-center justify-between gap-3 rounded-none border border-hairline bg-canvas p-4"
+                    className="flex flex-col items-start justify-between gap-3 rounded-lg border border-hairline bg-surface-cool p-4 sm:flex-row sm:items-center"
                   >
                     <span className="text-sm text-graphite truncate">
                       {file.filename} ({(file.size / 1024).toFixed(1)} KB)
                     </span>
-                    <button
+                    <Button
                       type="button"
                       onClick={() => handleDownloadOutputFile(file)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-none border border-hairline text-graphite hover:text-ink hover:border-hairline transition-all text-sm"
+                      disabled={downloading === file.filename}
+                      variant="ghost"
+                      className="min-h-11 gap-2"
                     >
-                      Download
-                      <ExternalLink className="w-4 h-4" />
-                    </button>
+                      {downloading === file.filename ? "Downloading..." : "Download"}
+                      <Download className="w-4 h-4" />
+                    </Button>
                   </div>
                 ))}
               </div>
+            </div>
+          ) : isTerminal && !job.outputUri ? (
+            <div className="mb-6 rounded-lg border border-hairline bg-canvas p-6 text-sm text-graphite">
+              No output artifacts were attached to this job.
             </div>
           ) : null}
 
           {/* Execution Stats */}
           {job.executionMetadata && (
-            <div className="rounded-none border border-hairline bg-canvas p-6 mb-6">
+            <div className="rounded-lg border border-hairline bg-canvas p-6 mb-6">
               <h2 className="text-xs font-semibold text-graphite uppercase tracking-widest mb-4">
                 Execution Stats
               </h2>
@@ -530,14 +460,14 @@ export default function JobDetailPage(): React.ReactElement {
           )}
 
           {/* Event timeline */}
-          <div className="grid grid-cols-2 gap-4 rounded-none border border-hairline bg-white/[0.025] p-5 mb-6">
+          <div className="grid grid-cols-1 gap-4 rounded-lg border border-hairline bg-surface-cool p-5 mb-6 sm:grid-cols-2">
             <div>
               <p className="text-xs text-stone mb-1">Budget (locked)</p>
               <p className="text-xl font-bold text-ink font-mono">
                 ◎ {Number(job.escrow?.amount ?? job.budget).toFixed(3)} SOL
               </p>
             </div>
-            {job.status === "COMPLETED" && job.finalCost && (
+            {job.status === "COMPLETED" && job.finalCost !== null && (
               <div>
                 <p className="text-xs text-green-400/60 mb-1">Actual cost</p>
                 <p className="text-xl font-bold text-green-400 font-mono">
@@ -562,7 +492,7 @@ export default function JobDetailPage(): React.ReactElement {
             )}
           </div>
 
-          <div className="rounded-none border border-hairline bg-canvas p-8 mb-6">
+          <div className="rounded-lg border border-hairline bg-canvas p-6 mb-6 sm:p-8">
             <h2 className="text-xs font-semibold text-graphite uppercase tracking-widest mb-8">
               Timeline
             </h2>
@@ -604,23 +534,28 @@ export default function JobDetailPage(): React.ReactElement {
           </div>
 
           {/* Actions */}
+          {actionError && <p role="alert" className="mb-4 rounded-lg border border-error/20 bg-error-bg p-4 text-sm text-error">{actionError}</p>}
           <div className="flex flex-wrap gap-3">
             {!isTerminal && (
-              <button
+              <Button
                 type="button"
                 onClick={fetchJob}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-none border border-hairline text-graphite hover:text-ink hover:border-hairline transition-all text-sm"
+                variant="ghost"
+                size="lg"
+                className="gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh
-              </button>
+              </Button>
             )}
             {canCancel && (
-              <button
+              <Button
                 type="button"
                 onClick={handleCancel}
                 disabled={cancelling}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-none border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="danger"
+                size="lg"
+                className="gap-2"
               >
                 {cancelling ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -628,7 +563,7 @@ export default function JobDetailPage(): React.ReactElement {
                   <XCircle className="w-4 h-4" />
                 )}
                 {cancelling ? "Cancelling…" : "Cancel Job"}
-              </button>
+              </Button>
             )}
           </div>
       </motion.div>

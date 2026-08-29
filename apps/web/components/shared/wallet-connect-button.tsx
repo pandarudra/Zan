@@ -1,7 +1,9 @@
 "use client";
 
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { Loader2, LogOut, Wallet } from "lucide-react";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
+import { cn } from "@/lib/utils";
 
 interface Props {
   className?: string;
@@ -19,48 +21,63 @@ export function WalletConnectButton({
   if (connecting) {
     return (
       <button
+        type="button"
         disabled
-        className={`flex items-center gap-2 rounded-none border border-hairline bg-surface-cool px-4 py-2.5 text-sm text-graphite ${className}`}
+        aria-live="polite"
+        className={cn(
+          "inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-hairline bg-surface-cool px-4 text-sm font-medium text-graphite",
+          className,
+        )}
       >
-        <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
-        Connecting...
+        <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+        Connecting…
       </button>
     );
   }
 
   if (connected && shortAddress) {
     return (
-      <div className={`flex items-center gap-3 ${className}`}>
+      <div className={cn("flex min-w-0 items-center gap-2", className)}>
         {showBalance && balance !== null && (
-          <span className="text-sm font-semibold text-ink">
+          <span className="whitespace-nowrap text-sm font-semibold text-ink">
             ◎ {balance.toFixed(3)} SOL
           </span>
         )}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setVisible(true)}
-            className="flex items-center gap-2 rounded-none border border-green-500/30 bg-green-500/10 px-4 py-2.5 text-sm font-semibold text-green-400 transition-colors hover:bg-green-500/20"
-          >
-            <span className="h-2 w-2 rounded-full bg-green-400" />
-            {shortAddress}
-          </button>
-          <button
-            onClick={() => disconnect()}
-            className="rounded-none border border-hairline bg-surface-cool px-3 py-2.5 text-xs font-semibold text-graphite hover:text-ink hover:bg-surface-cool transition-all"
-          >
-            Disconnect
-          </button>
-        </div>
+        <button
+          type="button"
+          aria-label={`Manage wallet ${shortAddress}`}
+          onClick={() => setVisible(true)}
+          className="flex h-11 min-w-0 items-center gap-2 rounded-lg border border-success/30 bg-success-bg px-3 text-sm font-semibold text-success transition-colors hover:bg-success/20"
+        >
+          <span
+            aria-hidden="true"
+            className="h-2 w-2 shrink-0 rounded-full bg-success"
+          />
+          <span className="truncate">{shortAddress}</span>
+        </button>
+        <button
+          type="button"
+          aria-label="Disconnect wallet"
+          title="Disconnect wallet"
+          onClick={() => disconnect()}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-hairline bg-surface-cool text-graphite transition-colors hover:border-ink hover:text-ink"
+        >
+          <LogOut aria-hidden="true" className="h-4 w-4" />
+        </button>
       </div>
     );
   }
 
   return (
     <button
+      type="button"
       onClick={() => setVisible(true)}
-      className={`flex items-center gap-2 rounded-none bg-primary text-on-primary px-5 py-2.5 text-sm font-bold text-on-primary transition-all hover:bg-white ${className}`}
+      className={cn(
+        "inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-on-primary transition-colors hover:bg-ink-soft",
+        className,
+      )}
     >
-      <span>◎</span>
+      <Wallet aria-hidden="true" className="h-4 w-4" />
       Connect Wallet
     </button>
   );

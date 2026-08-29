@@ -25,6 +25,8 @@ import {
   getProviderVaultPda,
 } from "@repo/contracts-sdk";
 import type { Escrow } from "@repo/contracts-sdk";
+import { PageContainer } from "@/components/shared/page-container";
+import { Button } from "@/components/ui/button";
 
 const PROGRAM_ID = new PublicKey(
   process.env.NEXT_PUBLIC_ESCROW_PROGRAM_ID ??
@@ -32,6 +34,17 @@ const PROGRAM_ID = new PublicKey(
 );
 const STAKE_AMOUNT_SOL = 2;
 const STAKE_AMOUNT_LAMPORTS = STAKE_AMOUNT_SOL * 1_000_000_000;
+
+function getStakeError(error: unknown): string {
+  const value = error as { message?: string; logs?: string[] };
+  const message = value.message ?? "";
+  if (message.includes("User rejected")) return "Transaction rejected by wallet";
+  if (message.includes("insufficient")) return "Insufficient SOL balance. You need at least 2 SOL plus network fees.";
+  if (message.includes("already in use") || value.logs?.some((log) => log.includes("already in use"))) {
+    return "You have already staked. Check your wallet history for the previous transaction signature.";
+  }
+  return message || "Staking failed. Please try again.";
+}
 
 function StakeContent() {
   const { publicKey, connected, signTransaction, signAllTransactions } =
@@ -86,52 +99,32 @@ function StakeContent() {
         .rpc();
 
       setTxSignature(tx);
-    } catch (err: any) {
-      console.error("[Stake] Error:", err);
-      if (err?.message?.includes("User rejected")) {
-        setError("Transaction rejected by wallet");
-      } else if (err?.message?.includes("insufficient")) {
-        setError(
-          "Insufficient SOL balance. You need at least 2 SOL + gas fees."
-        );
-      } else if (
-        err?.message?.includes("already in use") ||
-        err?.logs?.some((l: string) => l.includes("already in use"))
-      ) {
-        setError(
-          "You have already staked. If you need your previous stake signature, check your Phantom wallet transaction history."
-        );
-      } else {
-        setError(err?.message || "Staking failed. Please try again.");
-      }
+    } catch (err: unknown) {
+      setError(getStakeError(err));
     } finally {
       setLoading(false);
     }
   }, [publicKey, signTransaction, signAllTransactions, connection]);
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(txSignature);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(txSignature);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setError("Could not copy the transaction signature.");
+    }
   }, [txSignature]);
 
   return (
-    <div className="min-h-full flex items-center justify-center relative px-6 py-10">
-      {/* Background effects */}
-
-
-
+    <PageContainer className="flex min-h-[70vh] max-w-2xl items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-lg relative z-10"
+        className="w-full"
       >
-        <div className="rounded-none border border-hairline bg-canvas p-10 relative overflow-hidden">
-          {/* Top accent */}
-
-
-          {/* Header */}
+        <div className="relative overflow-hidden rounded-lg border border-hairline bg-canvas p-6 sm:p-10">
           <div className="text-center mb-10 flex flex-col items-center">
             <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
               <Coins className="w-8 h-8 text-amber-400" />
@@ -153,7 +146,8 @@ function StakeContent() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="p-4 rounded-none bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3"
+                  role="alert"
+                  className="flex items-start gap-3 rounded-lg border border-error/20 bg-error-bg p-4 text-sm text-error"
                 >
                   <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                   <p>{error}</p>
@@ -168,7 +162,7 @@ function StakeContent() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col gap-6"
               >
-                <div className="p-6 rounded-none bg-green-500/10 border border-green-500/20 text-center">
+                <div role="status" className="rounded-lg border border-success/20 bg-success-bg p-6 text-center">
                   <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
                     <CheckCircle2 className="w-6 h-6 text-green-400" />
                   </div>
@@ -182,7 +176,7 @@ function StakeContent() {
                 </div>
 
                 {/* Transaction signature */}
-                <div className="bg-canvas rounded-none border border-hairline p-6">
+                <div className="rounded-lg border border-hairline bg-surface-cool p-6">
                   <label className="text-xs font-semibold text-graphite uppercase tracking-wider mb-3 block">
                     Transaction Signature
                   </label>
@@ -191,9 +185,11 @@ function StakeContent() {
                       {txSignature}
                     </code>
                     <button
+                      type="button"
                       onClick={handleCopy}
-                      className="shrink-0 w-10 h-10 rounded-lg bg-surface-cool hover:bg-surface-cool border border-hairline flex items-center justify-center transition-all"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-hairline bg-canvas transition-colors hover:border-ink"
                       title="Copy to clipboard"
+                      aria-label="Copy transaction signature"
                     >
                       {copied ? (
                         <Check className="w-4 h-4 text-green-400" />
@@ -205,7 +201,7 @@ function StakeContent() {
                 </div>
 
                 {/* Instructions */}
-                <div className="bg-amber-500/5 rounded-none border border-amber-500/10 p-6">
+                <div className="rounded-lg border border-hairline bg-surface-cool p-6">
                   <h4 className="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
                     <ArrowRight className="w-4 h-4" />
                     Next Steps
@@ -255,7 +251,7 @@ function StakeContent() {
             ) : (
               <>
                 {/* Stake details */}
-                <div className="bg-canvas rounded-none border border-hairline p-6">
+                <div className="rounded-lg border border-hairline bg-surface-cool p-6">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-sm text-graphite">Stake Amount</span>
                     <span className="text-2xl font-bold text-amber-400">
@@ -281,7 +277,7 @@ function StakeContent() {
                 </div>
 
                 {/* Wallet connect */}
-                <div className="flex flex-col items-center gap-4 bg-canvas p-6 rounded-none border border-hairline">
+                <div className="flex flex-col items-center gap-4 rounded-lg border border-hairline bg-surface-cool p-6">
                   <p className="text-sm text-graphite text-center mb-1">
                     {connected
                       ? `Connected: ${publicKey?.toBase58().slice(0, 6)}...${publicKey?.toBase58().slice(-4)}`
@@ -304,10 +300,12 @@ function StakeContent() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                   >
-                    <button
+                    <Button
+                      type="button"
                       onClick={handleStake}
                       disabled={loading}
-                      className="w-full flex items-center justify-center gap-2 py-4 rounded-none bg-primary text-on-primary font-bold hover:bg-surface-cool hover:text-ink transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                      size="lg"
+                      className="w-full gap-2"
                     >
                       {loading ? (
                         <>
@@ -320,7 +318,7 @@ function StakeContent() {
                           Stake {STAKE_AMOUNT_SOL} SOL
                         </>
                       )}
-                    </button>
+                    </Button>
                     <p className="text-xs text-center text-stone mt-3">
                       This will transfer {STAKE_AMOUNT_SOL} SOL to the Zan
                       escrow program. You&apos;ll need to approve the
@@ -333,7 +331,7 @@ function StakeContent() {
           </div>
         </div>
       </motion.div>
-    </div>
+    </PageContainer>
   );
 }
 
@@ -341,9 +339,9 @@ export default function StakePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-canvas text-ink flex items-center justify-center text-graphite">
+        <PageContainer className="flex min-h-[50vh] items-center justify-center text-graphite">
           Loading staking...
-        </div>
+        </PageContainer>
       }
     >
       <StakeContent />

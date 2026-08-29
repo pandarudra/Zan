@@ -1,97 +1,57 @@
-"use client";
-
 import Image from "next/image";
 import { LANDING_CONTENT } from "@/config/landing-content";
 import type { ReactElement } from "react";
 
 export function SolutionSection(): ReactElement {
   const { tagline, headline, subheadline, cards } = LANDING_CONTENT.solution;
-  const hardwareCard = cards[0] ?? { title: "", description: "" };
-  const escrowCard = cards[1] ?? { title: "", description: "" };
-  const dockerCard = cards[2] ?? { title: "", description: "" };
 
   return (
     <section
       id="solution"
-      className="relative py-16 bg-canvas text-ink border-b border-hairline"
+      className="scroll-mt-20 border-b border-hairline bg-surface-cool/40 py-16 text-ink sm:py-20 lg:py-24"
     >
-      <div className="container mx-auto px-6 max-w-6xl">
-        <div className="mx-auto max-w-2xl text-center mb-16 flex flex-col items-center">
-          <div className="mb-6">
-            <span className="text-sm font-medium uppercase tracking-wider text-ink">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12">
+          <div className="lg:col-span-7">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone">
               {tagline}
-            </span>
+            </p>
+            <h2 className="mt-5 max-w-2xl text-3xl font-normal tracking-[-0.03em] text-ink sm:text-4xl lg:text-5xl">
+              {headline}
+            </h2>
           </div>
-
-          <h2 className="text-2xl md:text-4xl font-normal tracking-tight mb-8 text-ink">
-            {headline}
-          </h2>
-
-          <p className="text-base text-graphite max-w-xl">
+          <p className="max-w-xl text-base leading-7 text-graphite sm:text-lg lg:col-span-5">
             {subheadline}
           </p>
         </div>
 
-        {/* Grid layout */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {/* Card 1 */}
-          <div className="md:col-span-5 flex flex-col justify-between p-8 bg-canvas border border-hairline">
-            <div className="relative mb-5 h-40 w-full overflow-hidden rounded-md border border-hairline bg-canvas">
-              <Image
-                src="/images/solution_decentralized_nodes_1786389996363.png.png"
-                alt="Global GPU providers network"
-                fill
-                className="object-cover"
-                priority={false}
-              />
-            </div>
-            <h3 className="text-xl font-normal text-ink mb-4">
-              {hardwareCard.title}
-            </h3>
-            <p className="text-sm text-graphite">
-              {hardwareCard.description}
-            </p>
-          </div>
+        <div className="relative mt-12 aspect-[4/3] overflow-hidden rounded-xl border border-hairline bg-canvas sm:aspect-[16/8] lg:mt-16">
+          <Image
+            src="/images/solution_decentralized_nodes_1786389996363.png.png"
+            alt="Diagram showing jobs moving through escrow to distributed GPU nodes"
+            fill
+            sizes="(min-width: 1280px) 1216px, 100vw"
+            className="object-cover"
+          />
+        </div>
 
-          {/* Card 2 */}
-          <div className="md:col-span-7 flex flex-col justify-between p-8 bg-canvas border border-hairline">
-            <div className="relative mb-5 h-40 w-full overflow-hidden rounded-md border border-hairline bg-canvas">
-              <Image
-                src="/images/solution_decentralized_nodes_1786389996363.png.png"
-                alt="Solana escrow payment flow"
-                fill
-                className="object-cover"
-                priority={false}
-              />
-            </div>
-            <h3 className="text-xl font-normal text-ink mb-4">
-              {escrowCard.title}
-            </h3>
-            <p className="text-sm text-graphite max-w-md">
-              {escrowCard.description}
-            </p>
-          </div>
-
-          {/* Card 3 */}
-          <div className="md:col-span-12 flex flex-col md:flex-row gap-8 p-8 md:p-12 bg-canvas border border-hairline">
-            <div className="flex-1">
-              <h3 className="text-xl md:text-2xl font-normal text-ink mb-6">
-                {dockerCard.title}
+        <div className="grid border-x border-b border-hairline md:grid-cols-3">
+          {cards.map((card, index) => (
+            <article
+              key={card.title}
+              className="border-b border-hairline p-6 last:border-b-0 md:border-b-0 md:border-r md:p-8 md:last:border-r-0"
+            >
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-stone">
+                0{index + 1}
+              </span>
+              <h3 className="mt-8 text-xl font-medium tracking-tight text-ink">
+                {card.title}
               </h3>
-              <p className="text-base text-graphite max-w-md">
-                {dockerCard.description}
+              <p className="mt-3 text-sm leading-6 text-graphite">
+                {card.description}
               </p>
-            </div>
-            <div className="flex-1 bg-canvas h-64 relative rounded-md overflow-hidden border border-hairline">
-              <Image
-                src="/images/ph.png"
-                alt="Distributed GPU Infrastructure Visualization"
-                fill
-                className="object-cover"
-                priority={false}
-              />
-            </div>
-          </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>

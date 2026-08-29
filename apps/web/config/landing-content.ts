@@ -1,9 +1,9 @@
 export const LANDING_CONTENT = {
   hero: {
-    badge: " Built on Solana",
+    badge: "Built on Solana",
     headline: "Brilliant Compute\nBehind Brilliant AI.",
     subheadline:
-      "Access a decentralized network of high-performance GPUs-ready to power your AI inference and rendering tasks with speed and low cost.",
+      "Access a decentralized network of high-performance GPUs—ready to power your AI inference and rendering tasks with speed and low cost.",
     ctaPrimary: "I Need Compute",
     ctaSecondary: "List My GPU",
   },

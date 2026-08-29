@@ -4,6 +4,7 @@
   /* Brand & Accent */
   --color-primary: var(--c-primary);
   --color-on-primary: var(--c-on-primary);
+  --color-ring: var(--c-focus);
 
   /* Surface */
   --color-canvas: var(--c-canvas);
@@ -71,6 +72,7 @@
     color-scheme: dark;
     --c-primary: #ffffff;
     --c-on-primary: #000000;
+    --c-focus: #ffffff;
     --c-canvas: #0a0a0a;
     --c-canvas-warm: #111111;
     --c-hairline: #222222;
@@ -82,10 +84,10 @@
     --c-ink-soft: #cccccc;
     --c-graphite: #a0a0a0;
     --c-slate: #8c9298;
-    --c-slate-soft: #70757a;
-    --c-mute: #555555;
-    --c-stone: #404040;
-    --c-ash: #222222;
+    --c-slate-soft: #7a8085;
+    --c-mute: #7a7a7a;
+    --c-stone: #7a7a7a;
+    --c-ash: #7a7a7a;
   }
 
   *,
@@ -128,6 +130,11 @@
     max-width: 100%;
   }
 
+  :focus-visible {
+    outline: 2px solid var(--c-focus) !important;
+    outline-offset: 2px;
+  }
+
   input[type="password"]::-ms-reveal,
   input[type="password"]::-ms-clear {
     display: none;
@@ -140,6 +147,17 @@
     pointer-events: none;
     position: absolute;
     right: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 

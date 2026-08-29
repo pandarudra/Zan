@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/shared/navbar";
-import { Footer } from "@/components/shared/footer";
 import { AuthProvider } from "@/components/shared/auth-provider";
 import { WalletProvider } from "@/components/shared/wallet-provider";
 
@@ -36,9 +34,7 @@ export default function RootLayout({
         `}
       >
         <AuthProvider>
-          <WalletProvider>
-            {children}
-          </WalletProvider>
+          <WalletProvider>{children}</WalletProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,9 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Server, Plus, Wallet, Shield, Menu, X } from "lucide-react";
+import {
+  ArrowLeftRight,
+  LayoutDashboard,
+  Menu,
+  Plus,
+  Server,
+  Shield,
+  Wallet,
+  X,
+} from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { WalletConnectButton } from "@/components/shared/wallet-connect-button";
 
@@ -24,129 +33,200 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // Determine if we're in the provider or client section
-  const isProvider = pathname.startsWith("/provider") || pathname.startsWith("/stake");
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileNavigationRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const menuButton = menuButtonRef.current;
+    const closeMenu = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMobileMenuOpen(false);
+    };
+
+    mobileNavigationRef.current?.querySelector<HTMLElement>("a")?.focus();
+    document.addEventListener("keydown", closeMenu);
+    return () => {
+      document.removeEventListener("keydown", closeMenu);
+      menuButton?.focus();
+    };
+  }, [isMobileMenuOpen]);
+
+  const isProvider =
+    pathname.startsWith("/provider") || pathname.startsWith("/stake");
   const navLinks = isProvider ? PROVIDER_NAV : CLIENT_NAV;
+  const workspaceLabel = isProvider ? "Provider workspace" : "Client workspace";
+  const isActive = (href: string) =>
+    pathname === href ||
+    (href === "/client" && pathname.startsWith("/client/jobs/"));
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-canvas">
-      {/* Sidebar */}
-      <aside className="w-[280px] border-r border-hairline flex flex-col bg-surface-cool shrink-0 hidden md:flex">
-        <div className="h-[80px] px-6 flex items-center border-b border-hairline">
+    <div className="flex h-dvh w-full overflow-hidden bg-canvas">
+      <a
+        href="#main-content"
+        className="sr-only fixed left-4 top-4 z-[100] rounded-md bg-primary px-4 py-2 text-sm font-semibold text-on-primary focus:not-sr-only"
+      >
+        Skip to content
+      </a>
+
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-hairline bg-surface-cool md:flex xl:w-[280px]">
+        <div className="flex h-20 items-center border-b border-hairline px-6">
           <Logo />
         </div>
-        
-        <div className="flex-1 py-6 px-4 flex flex-col gap-2 overflow-y-auto">
+
+        <nav
+          aria-label={`${isProvider ? "Provider" : "Client"} navigation`}
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-6"
+        >
+          <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone">
+            {workspaceLabel}
+          </p>
           {navLinks.map((link) => {
             const Icon = link.icon;
-            const isActive = pathname === link.href;
-            
+            const active = isActive(link.href);
+
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  isActive 
-                    ? "bg-primary text-on-primary" 
+                aria-current={active ? "page" : undefined}
+                className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-primary text-on-primary"
                     : "text-ink-soft hover:bg-canvas hover:text-ink"
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon aria-hidden="true" className="h-5 w-5" />
                 {link.name}
               </Link>
             );
           })}
-        </div>
+        </nav>
 
-        <div className="p-4 border-t border-hairline">
-          <div className="flex flex-col gap-2">
-            <Link 
-              href={isProvider ? "/client" : "/provider"}
-              className="px-4 py-2 text-xs font-medium text-ink-soft hover:text-ink transition-colors text-center border border-hairline rounded-lg"
-            >
-              Switch to {isProvider ? "Client" : "Provider"}
-            </Link>
-          </div>
+        <div className="border-t border-hairline p-4">
+          <Link
+            href={isProvider ? "/client" : "/provider"}
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2 text-center text-xs font-medium text-ink-soft transition-colors hover:bg-canvas hover:text-ink"
+          >
+            <ArrowLeftRight aria-hidden="true" className="h-4 w-4" />
+            Switch to {isProvider ? "Client" : "Provider"}
+          </Link>
         </div>
       </aside>
 
-      {/* Mobile Navigation Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
-          <div className="fixed inset-0 bg-canvas/80 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-          <aside className="relative w-[280px] h-full flex flex-col bg-canvas border-r border-hairline shrink-0 shadow-2xl">
-            <div className="h-[80px] px-6 flex items-center justify-between border-b border-hairline">
+          <button
+            type="button"
+            aria-label="Close navigation"
+            tabIndex={-1}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 bg-canvas/80 backdrop-blur-sm"
+          />
+          <aside
+            ref={mobileNavigationRef}
+            id="dashboard-mobile-navigation"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${isProvider ? "Provider" : "Client"} navigation`}
+            className="relative flex h-full w-[min(280px,85vw)] shrink-0 flex-col border-r border-hairline bg-canvas shadow-2xl"
+          >
+            <div className="flex h-20 items-center justify-between border-b border-hairline px-6">
               <Logo />
-              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-ink-soft hover:text-ink">
-                <X className="w-5 h-5" />
+              <button
+                type="button"
+                aria-label="Close navigation"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex h-11 w-11 items-center justify-center text-ink-soft hover:text-ink"
+              >
+                <X aria-hidden="true" className="h-5 w-5" />
               </button>
             </div>
-            
-            <div className="flex-1 py-6 px-4 flex flex-col gap-2 overflow-y-auto">
+
+            <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-6">
+              <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone">
+                {workspaceLabel}
+              </p>
               {navLinks.map((link) => {
                 const Icon = link.icon;
-                const isActive = pathname === link.href;
-                
+                const active = isActive(link.href);
+
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
+                    aria-current={active ? "page" : undefined}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      isActive 
-                        ? "bg-primary text-on-primary" 
+                    className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-primary text-on-primary"
                         : "text-ink-soft hover:bg-surface-cool hover:text-ink"
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon aria-hidden="true" className="h-5 w-5" />
                     {link.name}
                   </Link>
                 );
               })}
-            </div>
+            </nav>
 
-            <div className="p-4 border-t border-hairline">
-              <div className="flex flex-col gap-2">
-                <Link 
-                  href={isProvider ? "/client" : "/provider"}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-2 text-xs font-medium text-ink-soft hover:text-ink transition-colors text-center border border-hairline rounded-lg"
-                >
-                  Switch to {isProvider ? "Client" : "Provider"}
-                </Link>
-              </div>
+            <div className="space-y-3 border-t border-hairline p-4">
+              <WalletConnectButton className="w-full" showBalance={false} />
+              <Link
+                href={isProvider ? "/client" : "/provider"}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-hairline px-3 py-2 text-center text-xs font-medium text-ink-soft transition-colors hover:bg-surface-cool hover:text-ink"
+              >
+                <ArrowLeftRight aria-hidden="true" className="h-4 w-4" />
+                Switch to {isProvider ? "Client" : "Provider"}
+              </Link>
             </div>
           </aside>
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Header */}
-        <header className="h-[80px] px-4 md:px-6 border-b border-hairline flex items-center justify-between bg-canvas shrink-0">
+      <div
+        inert={isMobileMenuOpen ? true : undefined}
+        className="flex h-full min-w-0 flex-1 flex-col overflow-hidden"
+      >
+        <header className="flex h-20 shrink-0 items-center justify-between border-b border-hairline bg-canvas px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex items-center gap-4 md:hidden">
-            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-ink-soft hover:text-ink">
-              <Menu className="w-6 h-6" />
+            <button
+              ref={menuButtonRef}
+              type="button"
+              aria-controls="dashboard-mobile-navigation"
+              aria-expanded={isMobileMenuOpen}
+              aria-label="Open navigation"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="flex h-11 w-11 items-center justify-center text-ink-soft hover:text-ink"
+            >
+              <Menu aria-hidden="true" className="h-6 w-6" />
             </button>
             <Logo />
           </div>
           <div className="hidden md:block">
-            {/* Breadcrumb or title could go here */}
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone">
+              {workspaceLabel}
+            </p>
           </div>
-          <div className="flex items-center gap-4">
-            <Link 
+          <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+            <Link
               href="/wallet"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-hairline text-sm font-medium hover:bg-surface-cool transition-colors"
+              aria-label="Wallet"
+              className="flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-hairline text-sm font-medium transition-colors hover:bg-surface-cool sm:w-auto sm:px-4"
             >
-              <Wallet className="w-4 h-4" /> Wallet
+              <Wallet aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Wallet</span>
             </Link>
-            <WalletConnectButton showBalance />
+            <WalletConnectButton className="hidden lg:flex" showBalance />
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
           {children}
         </main>
       </div>

@@ -1,5 +1,3 @@
-"use client";
-
 import { LANDING_CONTENT } from "@/config/landing-content";
 import type { ReactElement } from "react";
 
@@ -7,58 +5,59 @@ export function ProcessSection(): ReactElement {
   const { tagline, headline, subheadline, steps } = LANDING_CONTENT.process;
 
   return (
-    <section id="process" className="relative py-16 bg-canvas text-ink border-b border-hairline">
-      <div className="container mx-auto px-6 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          
-          {/* Left Side */}
-          <div className="lg:col-span-5 sticky top-24">
-            <div className="mb-6">
-              <span className="text-sm font-medium uppercase tracking-wider text-ink">
-                {tagline}
-              </span>
-            </div>
-
-            <h2 className="text-2xl md:text-3xl font-normal tracking-tight mb-8 text-ink">
+    <section
+      id="process"
+      className="scroll-mt-20 border-b border-hairline bg-canvas py-16 text-ink sm:py-20 lg:py-24"
+    >
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid items-start gap-12 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:sticky lg:top-24 lg:col-span-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone">
+              {tagline}
+            </p>
+            <h2 className="mt-5 text-3xl font-normal tracking-[-0.03em] text-ink sm:text-4xl lg:text-5xl">
               {headline}
             </h2>
-
-            <p className="text-base text-graphite max-w-sm">
+            <p className="mt-6 max-w-sm text-base leading-7 text-graphite sm:text-lg">
               {subheadline}
             </p>
           </div>
 
-          {/* Right Side */}
-          <div className="lg:col-span-7 flex flex-col gap-16">
-            {steps.map((step, idx) => (
-              <div key={idx} className="flex flex-col gap-6 pb-16 border-b border-hairline last:border-b-0 last:pb-0">
-                <div className="text-3xl font-normal text-stone">
+          <ol className="border-t border-hairline lg:col-span-7 lg:col-start-6">
+            {steps.map((step) => (
+              <li
+                key={step.id}
+                className="grid gap-6 border-b border-hairline py-8 sm:grid-cols-[72px_1fr] sm:py-10"
+              >
+                <span className="text-sm font-semibold text-stone">
                   {step.id}
-                </div>
-
+                </span>
                 <div>
-                  <h3 className="text-xl font-normal text-ink mb-4">
+                  <h3 className="text-xl font-medium tracking-tight text-ink sm:text-2xl">
                     {step.title}
                   </h3>
-                  <p className="text-sm text-graphite mb-6">
+                  <p className="mt-3 max-w-xl text-sm leading-6 text-graphite sm:text-base">
                     {step.description}
                   </p>
-                  
-                  {step.bullets && step.bullets.length > 0 && (
-                    <ul className="flex flex-col gap-3">
-                      {step.bullets.map((bullet: string, bIdx: number) => (
-                        <li key={bIdx} className="flex items-start gap-3 text-graphite">
-                          <span className="text-sm font-semibold text-ink mt-0.5">—</span>
-                          <span className="text-sm">{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
 
+                  <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+                    {step.bullets.map((bullet) => (
+                      <li
+                        key={bullet}
+                        className="flex items-start gap-3 text-sm text-graphite"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="mt-2 h-1 w-1 shrink-0 rounded-full bg-ink"
+                        />
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </section>

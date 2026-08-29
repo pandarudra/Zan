@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/lib/utils";
 import type { ReactElement } from "react";
 
@@ -95,14 +93,16 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium text-ink",
         cfg.bg,
         cfg.border,
-        "text-ink",
         className,
       )}
     >
-      <span className={cn("relative flex h-1.5 w-1.5 rounded-full", cfg.dot)} />
+      <span
+        aria-hidden="true"
+        className={cn("h-1.5 w-1.5 shrink-0 rounded-full", cfg.dot)}
+      />
       {cfg.label}
     </span>
   );

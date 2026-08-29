@@ -9,6 +9,14 @@ import { motion } from "framer-motion";
 import { CheckCircle2, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
 import bs58 from "bs58";
 import { useRouter, useSearchParams } from "next/navigation";
+import { PageContainer } from "@/components/shared/page-container";
+import { Button } from "@/components/ui/button";
+
+interface ChallengeResponse { message?: string; error?: string }
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "An error occurred";
+}
 
 function WalletVerificationContent() {
   const { data: session, status } = useSession();
@@ -39,18 +47,20 @@ function WalletVerificationContent() {
 
     try {
       const currentSession = await getSession();
-      const accessToken = token || (currentSession as any)?.accessToken;
+      const accessToken = token || (currentSession as typeof currentSession & { accessToken?: string })?.accessToken;
 
-      const headers: any = { "Content-Type": "application/json" };
-      if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (!accessToken) throw new Error("Your session has expired. Please sign in again.");
+      headers.Authorization = `Bearer ${accessToken}`;
 
       // 1. Get challenge
       const chalRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/wallet/challenge`, { headers });
       if (!chalRes.ok) {
-        const d = await chalRes.json().catch(()=>({}));
+        const d = (await chalRes.json().catch(() => ({}))) as ChallengeResponse;
         throw new Error(d.error || "Failed to get challenge");
       }
-      const { message } = await chalRes.json();
+      const { message } = (await chalRes.json()) as ChallengeResponse;
+      if (!message) throw new Error("The verification challenge was empty.");
 
       // 2. Sign message
       const encodedMessage = new TextEncoder().encode(message);
@@ -68,18 +78,18 @@ function WalletVerificationContent() {
         }),
       });
 
-      const verData = await verRes.json().catch(()=>({}));
+      const verData = (await verRes.json().catch(() => ({}))) as ChallengeResponse;
       if (!verRes.ok) throw new Error(verData.error || "Verification failed");
 
       setSuccess(true);
       setTimeout(() => {
         if (!token) {
-          const role = (session?.user as any)?.role;
+          const role = session?.user.role;
           router.push(role === "PROVIDER" ? "/provider" : "/client");
         }
       }, 3000);
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setError(errorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -88,19 +98,14 @@ function WalletVerificationContent() {
   if (status === "loading" || (status === "unauthenticated" && !token)) return null;
 
   return (
-    <div className="min-h-full flex items-center justify-center relative px-6 py-10">
-
-
-
+    <PageContainer className="flex min-h-[70vh] max-w-2xl items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-lg relative z-10"
+        className="w-full"
       >
-        <div className="rounded-none border border-hairline bg-canvas p-10 relative overflow-hidden">
-
-
+        <div className="relative overflow-hidden rounded-lg border border-hairline bg-canvas p-6 sm:p-10">
           <div className="text-center mb-10 flex flex-col items-center">
             <div className="w-16 h-16 rounded-full bg-surface-cool flex items-center justify-center mb-4">
               <ShieldCheck className="w-8 h-8 text-ink" />
@@ -115,7 +120,7 @@ function WalletVerificationContent() {
 
           <div className="flex flex-col gap-6">
             {error && (
-              <div className="p-4 rounded-none bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3">
+              <div role="alert" className="flex items-start gap-3 rounded-lg border border-error/20 bg-error-bg p-4 text-sm text-error">
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 <p>{error}</p>
               </div>
@@ -125,7 +130,8 @@ function WalletVerificationContent() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-6 rounded-none bg-green-500/10 border border-green-500/20 text-center"
+                role="status"
+                className="rounded-lg border border-success/20 bg-success-bg p-6 text-center"
               >
                 <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle2 className="w-6 h-6 text-green-400" />
@@ -137,7 +143,7 @@ function WalletVerificationContent() {
               </motion.div>
             ) : (
               <>
-                <div className="flex flex-col items-center gap-4 bg-canvas p-6 rounded-none border border-hairline">
+                <div className="flex flex-col items-center gap-4 rounded-lg border border-hairline bg-surface-cool p-6">
                   <p className="text-sm text-graphite text-center mb-2">
                     Step 1: Connect your Solana wallet
                   </p>
@@ -150,10 +156,12 @@ function WalletVerificationContent() {
                     animate={{ opacity: 1, height: "auto" }}
                     className="flex flex-col gap-4"
                   >
-                    <button
+                    <Button
+                      type="button"
                       onClick={handleVerify}
                       disabled={loading}
-                      className="w-full flex items-center justify-center gap-2 py-4 rounded-none bg-white text-black font-bold hover:bg-surface-cool transition-all disabled:opacity-70"
+                      size="lg"
+                      className="w-full gap-2"
                     >
                       {loading ? (
                         <>
@@ -163,7 +171,7 @@ function WalletVerificationContent() {
                       ) : (
                         "Step 2: Sign Message to Verify"
                       )}
-                    </button>
+                    </Button>
                     <p className="text-xs text-center text-graphite">
                       Signing this message is free and will not cost any SOL.
                     </p>
@@ -174,13 +182,13 @@ function WalletVerificationContent() {
           </div>
         </div>
       </motion.div>
-    </div>
+    </PageContainer>
   );
 }
 
 export default function WalletVerificationPage() {
   return (
-    <Suspense fallback={<div className="min-h-full flex items-center justify-center text-graphite">Loading verification...</div>}>
+    <Suspense fallback={<PageContainer className="flex min-h-[50vh] items-center justify-center text-graphite">Loading verification...</PageContainer>}>
       <WalletVerificationContent />
     </Suspense>
   );
