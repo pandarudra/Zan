@@ -5,13 +5,19 @@ import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { EscrowIDL, getConfigPda, getJobEscrowPda, getJobVaultPda } from "@repo/contracts-sdk";
 import type { Escrow } from "@repo/contracts-sdk";
 
-const ESCROW_PROGRAM_ID = process.env.NEXT_PUBLIC_ESCROW_PROGRAM_ID || "G4AGRutZdKry9rMnJiZt2Noz42ifwghgZxiXCETfXHGg";
+const DEFAULT_PROGRAM_ID = "G4AGRutZdKry9rMnJiZt2Noz42ifwghgZxiXCETfXHGg";
 
 export function useEscrow() {
   const { connection } = useConnection();
   const wallet = useWallet();
 
-  const programId = new PublicKey(ESCROW_PROGRAM_ID);
+  let programId: PublicKey;
+  try {
+    const envStr = (process.env.NEXT_PUBLIC_ESCROW_PROGRAM_ID || "").trim();
+    programId = new PublicKey(envStr || DEFAULT_PROGRAM_ID);
+  } catch (e) {
+    programId = new PublicKey(DEFAULT_PROGRAM_ID);
+  }
   
   // We use any for wallet because anchor expects a slightly different Wallet interface,
   // but it works fine with the wallet-adapter output.

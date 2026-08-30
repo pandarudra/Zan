@@ -28,10 +28,15 @@ import type { Escrow } from "@repo/contracts-sdk";
 import { PageContainer } from "@/components/shared/page-container";
 import { Button } from "@/components/ui/button";
 
-const PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_ESCROW_PROGRAM_ID ??
-    "G4AGRutZdKry9rMnJiZt2Noz42ifwghgZxiXCETfXHGg"
-);
+const DEFAULT_PROGRAM_ID = "G4AGRutZdKry9rMnJiZt2Noz42ifwghgZxiXCETfXHGg";
+let PROGRAM_ID: PublicKey;
+try {
+  const envStr = (process.env.NEXT_PUBLIC_ESCROW_PROGRAM_ID || "").trim();
+  PROGRAM_ID = new PublicKey(envStr || DEFAULT_PROGRAM_ID);
+} catch (e) {
+  PROGRAM_ID = new PublicKey(DEFAULT_PROGRAM_ID);
+}
+
 const STAKE_AMOUNT_SOL = 2;
 const STAKE_AMOUNT_LAMPORTS = STAKE_AMOUNT_SOL * 1_000_000_000;
 

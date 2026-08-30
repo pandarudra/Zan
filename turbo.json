@@ -6,7 +6,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["DATABASE_URL", "REDIS_URL"]
+      "env": ["DATABASE_URL", "DIRECT_URL", "REDIS_URL", "NEXTAUTH_URL", "NEXTAUTH_SECRET", "NEXT_PUBLIC_ESCROW_PROGRAM_ID"]
     },
     "lint": {
       "dependsOn": ["^lint"]

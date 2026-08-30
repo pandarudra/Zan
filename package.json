@@ -17,5 +17,18 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@9.15.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild",
+      "bufferutil",
+      "electron-winstaller",
+      "utf-8-validate",
+      "msgpackr-extract",
+      "@prisma/engines",
+      "sharp",
+      "prisma"
+    ]
+  }
 }
